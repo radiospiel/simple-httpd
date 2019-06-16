@@ -15,7 +15,7 @@ class VersionNumberTracker
     end
 
     def auto_version_bump
-      old_version_number = File.read("VERSION")
+      old_version_number = File.read("VERSION").chomp
       old = old_version_number.split('.')
       current = old[0..-2] << old[-1].next
       new_version_number = current.join('.')
