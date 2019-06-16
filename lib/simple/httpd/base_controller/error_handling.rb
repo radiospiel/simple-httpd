@@ -100,6 +100,7 @@ class Simple::Httpd::BaseController
   # -- print unspecified errors.
 
   error do |exc|
+    content_type :text
     message = <<~MSG
       === #{exc.class.name} =====================
       #{exc.message.chomp}
