@@ -12,8 +12,8 @@ class Simple::Httpd::BaseController < Sinatra::Base
   # Rails development mode, but on the other hand it is much faster, and
   # probably useful 90% of the time.
   configure :development do
-    require "sinatra/reloader"
-    register Sinatra::Reloader
+    # require "sinatra/reloader"
+    # register Sinatra::Reloader
   end
 end
 
