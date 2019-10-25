@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+$: << "lib"
+
+require "bundler"
+Bundler.setup
+
+# === setup and run Simple Httpd server =======================================
+require "simple/cli"
+require "simple/httpd/cli"
+
+Simple::Httpd::CLI.run!(*ARGV)
