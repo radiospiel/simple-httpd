@@ -26,10 +26,10 @@ module Simple::Httpd::CLI
       extract_mountpoint_and_path(s)
     end
 
-    app = Simple::Httpd.build(mounts)
+    app = ::Simple::Httpd.build(mounts)
     ::Simple::Httpd.listen! app, environment: environment,
                                  port: port,
-                                 logger: httpd_logger(environment: environment)
+                                 logger: logger
   end
 
   private
@@ -46,19 +46,9 @@ module Simple::Httpd::CLI
     [mountpoint, path]
   end
 
-  def httpd_logger(environment:)
-    return logger unless environment == "test"
-
-    test_logger
-  end
-
-  def test_logger
+  def stderr_logger
     logger = ::Logger.new STDERR
     logger.level = ::Logger::INFO
-    def logger.fatal(msg, *)
-      STDERR.puts "#{msg} exiting..." if msg.to_s != "SIGTERM"
-      exit 1
-    end
     logger
   end
 

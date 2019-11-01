@@ -13,6 +13,17 @@ module Simple::Httpd
 
   attr_accessor :logger
 
+  def logger
+    @logger ||= fallback_logger
+  end
+
+  def fallback_logger
+    logger = ::Logger.new(STDERR)
+    logger.level = ::Logger::INFO
+    logger.info "Logging to fallback logger"
+    logger
+  end
+
   # Builds a Simple::Httpd application.
   #
   # mounts is an array with these entries
@@ -25,6 +36,12 @@ module Simple::Httpd
     mounts_by_mountpoint = mounts.each_with_object({}) do |(mountpoint, path), hsh|
       hsh[mountpoint] ||= []
       hsh[mountpoint] << path
+
+      if path == "/" || path == ""
+        raise ArgumentError, "You probably don't want to mount your root directory, check the arguments"
+      end
+
+      logger.info "Mounting #{path} at #{mountpoint}"
     end
 
     uri_map = {}
