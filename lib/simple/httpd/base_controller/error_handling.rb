@@ -64,25 +64,43 @@ class Simple::Httpd::BaseController
                       description: error_description(exc)
   end
 
-  # class NotAuthorizedError < RuntimeError
-  # end
-  #
-  # error(NotAuthorizedError) do
-  #   render_error e, status: 403,
-  #                title: "Not authorized",
-  #                description: "You don't have necessary powers to access this page."
-  # end
+  # -- not authorized.---------------------------------------------------------
 
-  # class LoginRequiredError < RuntimeError
-  # end
-  #
-  # error(LoginRequiredError) do
-  #   render_error e, status: 404,
-  #                title: "Not found",
-  #                description: "The server failed to recognize affiliation. Please provide a valid Session-Id."
-  # end
+  class NotAuthorizedError < RuntimeError
+  end
+
+  error(NotAuthorizedError) do
+    render_error e, status: 403,
+                    title: "Not authorized",
+                    description: "You don't have necessary powers to access this page."
+  end
+
+  def not_authorized!(msg)
+    raise NotAuthorizedError, msg
+  end
+
+  # -- login required.---------------------------------------------------------
+
+  class LoginRequiredError < RuntimeError
+  end
+
+  def login_required!(msg)
+    raise LoginRequiredError, msg
+  end
+
+  error(LoginRequiredError) do
+    render_error e, status: 404,
+                    title: "Not found",
+                    description: "The server failed to recognize affiliation. Please provide a valid Session-Id."
+  end
+
+  # -- resource not found.-----------------------------------------------------
 
   class NotFoundError < RuntimeError
+  end
+
+  def not_found!(msg)
+    raise NotFoundError, msg
   end
 
   error(NotFoundError) do |exc|
