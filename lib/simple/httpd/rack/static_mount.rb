@@ -2,11 +2,7 @@
 class Simple::Httpd::Rack::StaticMount
   Rack = ::Simple::Httpd::Rack
 
-  EXTENSIONS = %w(
-    .txt .md
-    .js .css
-    .png .jpeg .jpg
-  )
+  EXTENSIONS = %w(.txt .md .js .css .png .jpeg .jpg)
 
   def self.build(mountpoint, path)
     static_files = static_files(path)

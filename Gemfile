@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem "rspec-httpd", "~> 0.0.14"
+gem "simple-cli", path: "../simple-cli"
 gem 'rake', '~> 11'
 gem 'rspec', '~> 3.7'
 # gem 'rubocop', '~> 0.61.1'
