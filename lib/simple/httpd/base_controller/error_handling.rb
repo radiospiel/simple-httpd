@@ -1,5 +1,7 @@
 require_relative "./json"
 
+# rubocop:disable Metrics/ClassLength
+
 class Simple::Httpd::BaseController
   H = ::Simple::Httpd::Helpers
 

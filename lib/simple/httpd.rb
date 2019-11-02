@@ -1,3 +1,5 @@
+# rubocop:disable Style/MultipleComparison
+
 module Simple
 end
 
@@ -12,7 +14,7 @@ require "simple/httpd/rack"
 module Simple::Httpd
   extend self
 
-  attr_accessor :logger
+  attr_writer :logger
 
   def logger
     @logger ||= fallback_logger
