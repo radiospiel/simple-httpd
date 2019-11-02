@@ -8,4 +8,20 @@ module Simple::Httpd::Helpers
     end
     parts.join("/")
   end
+
+  # instance_eval zero or more paths in the context of obj
+  def instance_eval_paths(obj, *paths)
+    paths.each do |path|
+      # STDERR.puts "Loading #{path}"
+      obj.instance_eval File.read(path), path, 1
+    end
+    obj
+  end
+
+  # subclass a klass with an optional description
+  def subclass(klass, description: nil)
+    subclass = Class.new(klass)
+    subclass.define_method(:inspect) { description } if description
+    subclass
+  end
 end
