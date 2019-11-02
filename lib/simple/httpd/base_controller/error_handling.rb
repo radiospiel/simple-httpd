@@ -1,6 +1,8 @@
 require_relative "./json"
 
 class Simple::Httpd::BaseController
+  H = ::Simple::Httpd::Helpers
+
   set :show_exceptions, false
   set :dump_errors, false
   set :raise_errors, false
@@ -135,7 +137,7 @@ class Simple::Httpd::BaseController
   private
 
   def error_type(exc)
-    "error/#{exc.class.name.underscore}".gsub(/\/error$/, "")
+    "error/#{H.underscore exc.class.name}".gsub(/\/error$/, "")
   end
 
   def error_description(exc)

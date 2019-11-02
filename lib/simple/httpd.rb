@@ -5,6 +5,7 @@ module Simple::Httpd
 end
 
 require "simple/httpd/version"
+require "simple/httpd/helpers"
 require "simple/httpd/base_controller"
 require "simple/httpd/rack"
 
