@@ -78,3 +78,6 @@ Style/TrailingUnderscoreVariable:
   
 Style/StderrPuts:
   Enabled: false
+
+Style/NonNilCheck:
+  Enabled: false

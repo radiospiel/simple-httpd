@@ -1,4 +1,4 @@
-module Simple::Httpd
+class Simple::Httpd
   module GemHelper
     extend self
 

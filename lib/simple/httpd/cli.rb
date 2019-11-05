@@ -1,5 +1,5 @@
 module Simple
-  module Httpd
+  class Httpd
   end
 end
 
@@ -19,32 +19,13 @@ module Simple::Httpd::CLI
 
     # late loading simple/httpd, for simplecov support
     require "simple/httpd"
-    Simple::Httpd.logger = Simple::CLI.logger
 
-    # build and start app
-    mounts = ([path] + paths).map do |s|
-      extract_mountpoint_and_path(s)
-    end
-
-    app = ::Simple::Httpd.build(mounts)
-    ::Simple::Httpd.listen! app, environment: environment,
-                                 port: port,
-                                 logger: logger
+    ::Simple::Httpd.listen!(path, *paths, environment: environment,
+                                          port: port,
+                                          logger: logger)
   end
 
   private
-
-  def extract_mountpoint_and_path(str)
-    path, mountpoint = str.split(":", 2)
-    path = path.gsub(/\/$/, "")
-
-    # Fall back to "/"
-    mountpoint ||= "/"
-
-    # make sure mountpoint starts with "/"
-    mountpoint = File.join("/", mountpoint)
-    [mountpoint, path]
-  end
 
   def stderr_logger
     logger = ::Logger.new STDERR
