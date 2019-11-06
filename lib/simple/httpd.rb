@@ -127,22 +127,25 @@ class Simple::Httpd
     private
 
     def initialize(str)
-      expect! str => /\A[^:]+(:[^:]+)?\z/
-      @path, @mountpoint = str.split(":")
+      @path, @mountpoint = str.split(":", 2)
 
-      normalize_path!
-      normalize_mountpoint!
+      normalize_and_verify_path!
+      normalize_and_verify_mountpoint!
     end
 
-    def normalize_mountpoint!
-      @mountpoint ||= "/"                           # fall back to "/"
-      @mountpoint = File.join("/", @mountpoint)     # make sure we start at "/"
-    end
-
-    def normalize_path!
+    def normalize_and_verify_path!
       @path = @path.gsub(/\/$/, "") # remove trailing "/"
 
       raise ArgumentError, "You probably don't want to mount your root directory, check mount_spec" if @path == ""
+      raise Errno::ENOENT, path unless Dir.exist?(path)
+    end
+
+    def normalize_and_verify_mountpoint!
+      @mountpoint ||= "/"                           # fall back to "/"
+      @mountpoint = File.join("/", @mountpoint)     # make sure we start at "/"
+
+      canary_url = "http://0.0.0.0#{@mountpoint}"   # verify mountpoint: can it be used to build a URL?
+      URI.parse canary_url
     end
   end
 end
