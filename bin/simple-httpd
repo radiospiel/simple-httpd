@@ -8,4 +8,6 @@ Bundler.setup
 require "simple/cli"
 require "simple/httpd/cli"
 
-Simple::Httpd::CLI.run!(*ARGV)
+# run the :main command with these arguments. This switches simple-cli into
+# non-subcommand mode.
+Simple::Httpd::CLI.run!(:main)

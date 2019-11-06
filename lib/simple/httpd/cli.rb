@@ -6,21 +6,43 @@ end
 module Simple::Httpd::CLI
   include Simple::CLI
 
-  def self.run!(*args)
-    # By passing in "main" we don't run subcommands.
-    super "main", *args
-  end
-
-  # Run a simple httpd server
-  def main(path, *paths, port: 8018, environment: "development")
+  # Runs a simple httpd server
+  #
+  # A mount_spec is either the location of a directory, which would then be mounted
+  # at the "/" HTTP location, or a directory followed by a colon and where to mount
+  # the directory.
+  #
+  # Mounted directories might contain either ruby source code which is then executed
+  # or static files to be delivered verbatim. See README.md for more details.
+  #
+  # Examples:
+  #
+  #   simple-httpd --port=8080 httpd/root httpd/assets:assets
+  #
+  # serves the content of ./httpd/root on http://0.0.0.0/ and the content of httpd/assets
+  # on http://0.0.0.0/assets.
+  #
+  # Options:
+  #
+  #   --port=NN                 ... The port number
+  #   --environment=ENV         ... The environment setting, which adjusts configuration.
+  #
+  # Each entry in mounts can be either:
+  #
+  # - a mountpoint <tt>[ mountpoint, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
+  # - a string denoting a mountpoint, e.g. "path/to/root:/")
+  # - a string denoting a "/" mountpoint (e.g. "path", which is shorthand for "path:/")
+  def main(*mount_specs, port: 8018, environment: "development")
     start_simplecov if environment == "test"
+
+    mount_specs << "." if mount_specs.empty?
 
     port = Integer(port)
 
     # late loading simple/httpd, for simplecov support
     require "simple/httpd"
 
-    ::Simple::Httpd.listen!(path, *paths, environment: environment,
+    ::Simple::Httpd.listen!(*mount_specs, environment: environment,
                                           port: port,
                                           logger: logger)
   end
