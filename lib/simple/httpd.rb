@@ -66,18 +66,18 @@ class Simple::Httpd
 
   public
 
-  # Adds one or more mountpoints
+  # Adds one or more mount_points
   #
   # Each entry in mounts can be either:
   #
-  # - a mountpoint <tt>[ mountpoint, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
-  # - a string denoting a mountpoint, e.g. "path/to/root:/")
-  # - a string denoting a "/" mountpoint (e.g. "path", which is shorthand for "path:/")
+  # - a mount_point <tt>[ mount_point, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
+  # - a string denoting a mount_point, e.g. "path/to/root:/")
+  # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
   #
   def mount(mount_spec)
     raise ArgumentError, "Cannot mount onto an already built app" if built?
 
-    @mount_specs << MountSpec.new(mount_spec)
+    @mount_specs << PathMountSpec.new(mount_spec)
   end
 
   extend Forwardable
@@ -92,13 +92,13 @@ class Simple::Httpd
   def build_rack
     uri_map = {}
 
-    @mount_specs.group_by(&:mountpoint).map do |mountpoint, mount_specs|
+    @mount_specs.group_by(&:mount_point).map do |mount_point, mount_specs|
       apps = mount_specs.inject([]) do |ary, mount_spec|
-        ary << Rack::DynamicMount.build(mountpoint, mount_spec.path)
-        ary << Rack::StaticMount.build(mountpoint, mount_spec.path)
+        ary << Rack::DynamicMount.build(mount_point, mount_spec.path)
+        ary << Rack::StaticMount.build(mount_point, mount_spec.path)
       end.compact
 
-      uri_map[mountpoint] = Rack.merge(apps)
+      uri_map[mount_point] = Rack.merge(apps)
     end
 
     ::Rack::URLMap.new(uri_map)
@@ -114,9 +114,9 @@ class Simple::Httpd
     SELF.listen!(rack, environment: environment, port: port, logger: logger)
   end
 
-  # functions to parse a MountSpec
-  class MountSpec
-    attr_reader :path, :mountpoint
+  # functions to parse a PathMountSpec
+  class PathMountSpec
+    attr_reader :path, :mount_point
 
     def self.build(mount_spec)
       return mount_spec if mount_spec.is_a?(self)
@@ -127,10 +127,10 @@ class Simple::Httpd
     private
 
     def initialize(str)
-      @path, @mountpoint = str.split(":", 2)
+      @path, @mount_point = str.split(":", 2)
 
       normalize_and_verify_path!
-      normalize_and_verify_mountpoint!
+      normalize_and_verify_mount_point!
     end
 
     def normalize_and_verify_path!
@@ -140,11 +140,42 @@ class Simple::Httpd
       raise Errno::ENOENT, path unless Dir.exist?(path)
     end
 
-    def normalize_and_verify_mountpoint!
-      @mountpoint ||= "/"                           # fall back to "/"
-      @mountpoint = File.join("/", @mountpoint)     # make sure we start at "/"
+    def normalize_and_verify_mount_point!
+      @mount_point ||= "/"                           # fall back to "/"
+      @mount_point = File.join("/", @mount_point)     # make sure we start at "/"
 
-      canary_url = "http://0.0.0.0#{@mountpoint}"   # verify mountpoint: can it be used to build a URL?
+      canary_url = "http://0.0.0.0#{@mount_point}"   # verify mount_point: can it be used to build a URL?
+      URI.parse canary_url
+    end
+  end
+
+  # functions to build a PathMountSpec
+  class PathMountSpec
+    attr_reader :path, :mount_point
+
+    private
+
+    def initialize(str)
+      raise ArgumentError unless str.is_a?(String)
+
+      @path, @mount_point = str.split(":", 2)
+
+      normalize_and_verify_path!
+      normalize_and_verify_mount_point!
+    end
+
+    def normalize_and_verify_path!
+      @path = @path.gsub(/\/$/, "") # remove trailing "/"
+
+      raise ArgumentError, "You probably don't want to mount your root directory, check mount_spec" if @path == ""
+      raise Errno::ENOENT, path unless Dir.exist?(path)
+    end
+
+    def normalize_and_verify_mount_point!
+      @mount_point ||= "/"                           # fall back to "/"
+      @mount_point = File.join("/", @mount_point)     # make sure we start at "/"
+
+      canary_url = "http://0.0.0.0#{@mount_point}"   # verify mount_point: can it be used to build a URL?
       URI.parse canary_url
     end
   end

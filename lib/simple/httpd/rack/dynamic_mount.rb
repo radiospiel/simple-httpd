@@ -7,19 +7,19 @@ class Simple::Httpd::Rack::DynamicMount
   H = ::Simple::Httpd::Helpers
   Rack = ::Simple::Httpd::Rack
 
-  def self.build(mountpoint, path)
+  def self.build(mount_point, path)
     expect! path => String
 
-    url_map = new(mountpoint, path).build_url_map
+    url_map = new(mount_point, path).build_url_map
 
     ::Rack::URLMap.new(url_map)
   end
 
   attr_reader :path
-  attr_reader :mountpoint
+  attr_reader :mount_point
 
-  def initialize(mountpoint, path)
-    @mountpoint = mountpoint
+  def initialize(mount_point, path)
+    @mount_point = mount_point
     @path = path
 
     # determine source_paths and controller_paths
@@ -34,17 +34,17 @@ class Simple::Httpd::Rack::DynamicMount
     @controller_paths.sort.each_with_object({}) do |absolute_path, url_map|
       relative_path = absolute_path[(path.length)..-1]
 
-      relative_mountpoint = relative_path == "/root.rb" ? "/" : relative_path.gsub(/\.rb$/, "")
+      relative_mount_point = relative_path == "/root.rb" ? "/" : relative_path.gsub(/\.rb$/, "")
       controller_class = load_controller absolute_path
 
-      absolute_mountpoint = File.join(mountpoint, relative_mountpoint)
+      absolute_mount_point = File.join(mount_point, relative_mount_point)
 
       ::Simple::Httpd.logger.info do
         routes_count = controller_class.routes.values.sum(&:count)
-        "#{absolute_mountpoint}: mounting #{routes_count} route(s) from #{absolute_path}"
+        "#{absolute_mount_point}: mounting #{routes_count} route(s) from #{absolute_path}"
        end
 
-      url_map.update relative_mountpoint => controller_class
+      url_map.update relative_mount_point => controller_class
     end
   end
 

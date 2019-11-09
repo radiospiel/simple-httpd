@@ -29,9 +29,9 @@ module Simple::Httpd::CLI
   #
   # Each entry in mounts can be either:
   #
-  # - a mountpoint <tt>[ mountpoint, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
-  # - a string denoting a mountpoint, e.g. "path/to/root:/")
-  # - a string denoting a "/" mountpoint (e.g. "path", which is shorthand for "path:/")
+  # - a mount_point <tt>[ mount_point, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
+  # - a string denoting a mount_point, e.g. "path/to/root:/")
+  # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
   def main(*mount_specs, port: 8018, environment: "development")
     start_simplecov if environment == "test"
 

@@ -4,12 +4,12 @@ class Simple::Httpd::Rack::StaticMount
 
   EXTENSIONS = %w(.txt .md .js .css .png .jpeg .jpg)
 
-  def self.build(mountpoint, path)
+  def self.build(mount_point, path)
     static_files = static_files(path)
     return nil if static_files.empty?
 
     ::Simple::Httpd.logger.info do
-      "#{mountpoint}: serving #{static_files.count} static file(s)"
+      "#{mount_point}: serving #{static_files.count} static file(s)"
     end
 
     new(path, static_files)
@@ -22,7 +22,7 @@ class Simple::Httpd::Rack::StaticMount
     end
   end
 
-  attr_reader :mountpoint, :path
+  attr_reader :mount_point, :path
 
   def initialize(path, static_files)
     @path = path
