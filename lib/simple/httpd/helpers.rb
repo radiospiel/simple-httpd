@@ -1,6 +1,33 @@
 module Simple::Httpd::Helpers
   extend self
 
+  private
+
+  def pwd
+    @pwd ||= File.join(Dir.getwd, "/")
+  end
+
+  def home
+    @home ||= File.join(Dir.home, "/")
+  end
+
+  public
+
+  def shorten_path(path)
+    path = File.absolute_path(path)
+
+    if path.start_with?(pwd)
+      path = path[pwd.length..-1]
+      path = File.join("./", path) if path =~ /\//
+    end
+
+    if path.start_with?(home)
+      path = File.join("~/", path[home.length..-1])
+    end
+
+    path
+  end
+
   def underscore(str)
     parts = str.split("::")
     parts = parts.map do |part|

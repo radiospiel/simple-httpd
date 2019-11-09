@@ -1,7 +1,7 @@
 coverage
 rdoc
 pkg
-log/test.log
+log/*.log
 .rspec.data
 Gemfile.lock
 .rake_t_cache

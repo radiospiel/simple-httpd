@@ -30,6 +30,7 @@ class Simple::Httpd::Rack::DynamicMount
     @root_controller = build_root_controller(helper_paths)
   end
 
+  # rubocop:disable Metrics/AbcSize
   def build_url_map
     @controller_paths.sort.each_with_object({}) do |absolute_path, url_map|
       relative_path = absolute_path[(path.length)..-1]
@@ -37,12 +38,12 @@ class Simple::Httpd::Rack::DynamicMount
       relative_mount_point = relative_path == "/root.rb" ? "/" : relative_path.gsub(/\.rb$/, "")
       controller_class = load_controller absolute_path
 
-      absolute_mount_point = File.join(mount_point, relative_mount_point)
-
       ::Simple::Httpd.logger.info do
+        absolute_mount_point = File.join(mount_point, relative_mount_point)
         routes_count = controller_class.routes.values.sum(&:count)
-        "#{absolute_mount_point}: mounting #{routes_count} route(s) from #{absolute_path}"
-       end
+
+        "#{absolute_mount_point}: mounting #{routes_count} route(s) from #{H.shorten_path absolute_path}"
+      end
 
       url_map.update relative_mount_point => controller_class
     end

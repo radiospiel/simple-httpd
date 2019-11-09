@@ -1,5 +1,8 @@
 module Simple
   class Httpd
+    class << self
+      attr_accessor :env
+    end
   end
 end
 
@@ -33,6 +36,8 @@ module Simple::Httpd::CLI
   # - a string denoting a mount_point, e.g. "path/to/root:/")
   # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
   def main(*mount_specs, environment: "development", services: nil)
+    ::Simple::Httpd.env = environment
+
     start_simplecov if environment == "test"
 
     mount_specs << "." if mount_specs.empty?
