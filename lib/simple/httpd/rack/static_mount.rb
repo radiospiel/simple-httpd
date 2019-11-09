@@ -8,7 +8,10 @@ class Simple::Httpd::Rack::StaticMount
     static_files = static_files(path)
     return nil if static_files.empty?
 
-    ::Simple::Httpd.logger.info "Serving #{static_files.count} static file(s) at #{mountpoint}"
+    ::Simple::Httpd.logger.info do
+      "#{mountpoint}: serving #{static_files.count} static file(s)"
+    end
+
     new(path, static_files)
   end
 

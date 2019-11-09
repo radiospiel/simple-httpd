@@ -38,7 +38,11 @@ class Simple::Httpd::Rack::DynamicMount
       controller_class = load_controller absolute_path
 
       absolute_mountpoint = File.join(mountpoint, relative_mountpoint)
-      ::Simple::Httpd.logger.info "Mounting #{absolute_path} at #{absolute_mountpoint}"
+
+      ::Simple::Httpd.logger.info do
+        routes_count = controller_class.routes.values.sum(&:count)
+        "#{absolute_mountpoint}: mounting #{routes_count} route(s) from #{absolute_path}"
+       end
 
       url_map.update relative_mountpoint => controller_class
     end
