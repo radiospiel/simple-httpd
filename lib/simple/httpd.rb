@@ -9,7 +9,7 @@ end
 require "simple/httpd/version"
 require "simple/httpd/helpers"
 require "simple/httpd/base_controller"
-require "simple/httpd/rack"
+require "simple/httpd/mount_spec"
 require "simple/httpd/server"
 
 class Simple::Httpd
@@ -74,10 +74,10 @@ class Simple::Httpd
   # - a string denoting a mount_point, e.g. "path/to/root:/")
   # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
   #
-  def mount(mount_spec)
+  def mount(mount_spec, at: nil)
     raise ArgumentError, "Cannot mount onto an already built app" if built?
 
-    @mount_specs << PathMountSpec.new(mount_spec)
+    @mount_specs << MountSpec.build(mount_spec, at: at)
   end
 
   extend Forwardable
@@ -93,11 +93,7 @@ class Simple::Httpd
     uri_map = {}
 
     @mount_specs.group_by(&:mount_point).map do |mount_point, mount_specs|
-      apps = mount_specs.inject([]) do |ary, mount_spec|
-        ary << Rack::DynamicMount.build(mount_point, mount_spec.path)
-        ary << Rack::StaticMount.build(mount_point, mount_spec.path)
-      end.compact
-
+      apps = mount_specs.map(&:build_rack_apps).flatten
       uri_map[mount_point] = Rack.merge(apps)
     end
 
@@ -112,71 +108,5 @@ class Simple::Httpd
 
   def listen!(environment:, port:, logger:)
     SELF.listen!(rack, environment: environment, port: port, logger: logger)
-  end
-
-  # functions to parse a PathMountSpec
-  class PathMountSpec
-    attr_reader :path, :mount_point
-
-    def self.build(mount_spec)
-      return mount_spec if mount_spec.is_a?(self)
-
-      new(mount_spec)
-    end
-
-    private
-
-    def initialize(str)
-      @path, @mount_point = str.split(":", 2)
-
-      normalize_and_verify_path!
-      normalize_and_verify_mount_point!
-    end
-
-    def normalize_and_verify_path!
-      @path = @path.gsub(/\/$/, "") # remove trailing "/"
-
-      raise ArgumentError, "You probably don't want to mount your root directory, check mount_spec" if @path == ""
-      raise Errno::ENOENT, path unless Dir.exist?(path)
-    end
-
-    def normalize_and_verify_mount_point!
-      @mount_point ||= "/"                           # fall back to "/"
-      @mount_point = File.join("/", @mount_point)     # make sure we start at "/"
-
-      canary_url = "http://0.0.0.0#{@mount_point}"   # verify mount_point: can it be used to build a URL?
-      URI.parse canary_url
-    end
-  end
-
-  # functions to build a PathMountSpec
-  class PathMountSpec
-    attr_reader :path, :mount_point
-
-    private
-
-    def initialize(str)
-      raise ArgumentError unless str.is_a?(String)
-
-      @path, @mount_point = str.split(":", 2)
-
-      normalize_and_verify_path!
-      normalize_and_verify_mount_point!
-    end
-
-    def normalize_and_verify_path!
-      @path = @path.gsub(/\/$/, "") # remove trailing "/"
-
-      raise ArgumentError, "You probably don't want to mount your root directory, check mount_spec" if @path == ""
-      raise Errno::ENOENT, path unless Dir.exist?(path)
-    end
-
-    def normalize_and_verify_mount_point!
-      @mount_point ||= "/"                           # fall back to "/"
-      @mount_point = File.join("/", @mount_point)     # make sure we start at "/"
-
-      canary_url = "http://0.0.0.0#{@mount_point}"   # verify mount_point: can it be used to build a URL?
-      URI.parse canary_url
-    end
   end
 end
