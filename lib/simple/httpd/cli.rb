@@ -32,17 +32,19 @@ module Simple::Httpd::CLI
   # - a mount_point <tt>[ mount_point, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
   # - a string denoting a mount_point, e.g. "path/to/root:/")
   # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
-  def main(*mount_specs, port: 8018, environment: "development")
+  def main(*mount_specs, environment: "development", services: nil)
     start_simplecov if environment == "test"
 
     mount_specs << "." if mount_specs.empty?
 
-    port = Integer(port)
+    host = ENV["HOST"] || "127.0.0.1"
+    port = Integer(ENV["PORT"] || 8181)
 
     # late loading simple/httpd, for simplecov support
     require "simple/httpd"
 
     ::Simple::Httpd.listen!(*mount_specs, environment: environment,
+                                          host: host,
                                           port: port,
                                           logger: logger)
   end
