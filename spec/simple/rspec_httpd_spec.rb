@@ -5,7 +5,7 @@ describe Simple::Httpd do
     it "sends proper headers" do
       http.get "/info/inspect?qux"
 
-      result_lines = http.result.split("\n")
+      result_lines = http.content.split("\n")
 
       expect(result_lines).to include("QUERY_STRING=qux")
       expect(result_lines).to include("REQUEST_METHOD=GET")

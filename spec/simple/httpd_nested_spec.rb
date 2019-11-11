@@ -5,7 +5,7 @@ describe Simple::Httpd do
     # mounting not at root level
     it "gets deep route from root.rb file" do
       http.get "/api/v2"
-      expect(http.result).to eq("version" => "v2")
+      expect(http.content).to eq("version" => "v2")
       expect(http.response.headers["content-type"]).to match(/application\/json/)
     end
 
@@ -24,7 +24,7 @@ describe Simple::Httpd do
     it "gets deep route with params from non-root.rb file" do
       http.get "/api/v2/jobs/12/events"
       expect(http.response.headers["content-type"]).to match(/application\/json/)
-      expect(http.result).to eq([{ "job_id" => "12", "id" => "event1" }, { "job_id" => "12", "id" => "event2" }])
+      expect(http.content).to eq([{ "job_id" => "12", "id" => "event1" }, { "job_id" => "12", "id" => "event2" }])
     end
   end
 end
