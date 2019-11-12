@@ -8,8 +8,10 @@ class Simple::Httpd
       def <<(msg); end
     end
 
-    def self.listen!(app, environment: "development", host:, port:, logger: nil)
+    def listen!(app, environment: "development", host: nil, port:, logger: nil)
       expect! app != nil
+
+      host ||= "127.0.0.1"
       URI("http://#{host}:#{port}") # validate host and port
 
       logger ||= ::Simple::Httpd.logger

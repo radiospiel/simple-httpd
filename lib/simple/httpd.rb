@@ -30,7 +30,7 @@ class Simple::Httpd
   # respond to call/3) it redirects to <tt>Server.listen!</tt> right
   # away - this way this method can be used as a helper method
   # to easily start a Rack server.
-  def self.listen!(*mount_specs, environment: "development", host:, port:, logger: nil, &block)
+  def self.listen!(*mount_specs, environment: "development", host: nil, port:, logger: nil, &block)
     # If there is no argument but a block use the block as a rack server
     if block
       raise ArgumentError, "Can't deal w/block *and* mount_specs" unless mount_specs.empty?
