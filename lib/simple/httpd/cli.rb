@@ -1,3 +1,5 @@
+# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+
 module Simple
   class Httpd
     class << self
@@ -20,15 +22,18 @@ module Simple::Httpd::CLI
   #
   # Examples:
   #
-  #   simple-httpd --port=8080 httpd/root httpd/assets:assets
+  #   simple-httpd --port=8080 httpd/root --service=src/to/service.rb MyService:/ httpd/assets:assets
   #
   # serves the content of ./httpd/root on http://0.0.0.0/ and the content of httpd/assets
   # on http://0.0.0.0/assets.
   #
   # Options:
   #
-  #   --port=NN                 ... The port number
-  #   --environment=ENV         ... The environment setting, which adjusts configuration.
+  #   --environment=ENV         ... the environment setting, which adjusts configuration.
+  #   --services=<path>,<path>  ... load these ruby file during startup. Used to define service objects.
+  #
+  # simple-httpd respects the HOST and PORT environment values to determine the interface
+  # and port to listen to. Default values are "127.0.0.1" and 8181.
   #
   # Each entry in mounts can be either:
   #
@@ -47,6 +52,20 @@ module Simple::Httpd::CLI
 
     # late loading simple/httpd, for simplecov support
     require "simple/httpd"
+    helpers = ::Simple::Httpd::Helpers
+
+    services&.split(",")&.each do |service_path|
+      paths = if Dir.exist?(service_path)
+                Dir.glob("#{service_path}/**/*.rb").sort
+              else
+                [service_path]
+              end
+
+      paths.each do |path|
+        logger.info "Loading service(s) from #{helpers.shorten_path path}"
+        load path
+      end
+    end
 
     ::Simple::Httpd.listen!(*mount_specs, environment: environment,
                                           host: host,

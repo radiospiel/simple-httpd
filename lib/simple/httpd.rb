@@ -6,11 +6,15 @@ end
 class Simple::Httpd
 end
 
-require "simple/httpd/version"
+require "simple/service"
+
 require "simple/httpd/helpers"
 require "simple/httpd/base_controller"
+require "simple/httpd/version"
 require "simple/httpd/mount_spec"
 require "simple/httpd/server"
+
+require "simple/httpd/service"
 
 class Simple::Httpd
   SELF = self
@@ -61,7 +65,7 @@ class Simple::Httpd
   def initialize(*mount_specs)
     @mount_specs = []
     mount_specs.map do |mount_spec|
-      mount(mount_spec)
+      mount(mount_spec, at: nil)
     end
   end
 

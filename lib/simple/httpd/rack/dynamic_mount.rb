@@ -40,7 +40,7 @@ class Simple::Httpd::Rack::DynamicMount
 
       ::Simple::Httpd.logger.info do
         absolute_mount_point = File.join(mount_point, relative_mount_point)
-        routes_count = controller_class.routes.values.sum(&:count)
+        routes_count = controller_class.routes.reject { |verb, _| verb == "HEAD" }.values.sum(&:count)
 
         "#{absolute_mount_point}: mounting #{routes_count} route(s) from #{H.shorten_path absolute_path}"
       end
@@ -55,6 +55,7 @@ class Simple::Httpd::Rack::DynamicMount
                        description: "root controller at #{path} w/#{helper_paths.count} helpers"
 
     H.instance_eval_paths klass, *helper_paths.sort
+    klass
   end
 
   # wraps the source file in path into a root_controller

@@ -68,6 +68,12 @@ class Simple::Httpd::BaseController
                       description: error_description(exc)
   end
 
+  error(::Simple::Service::ArgumentError) do |exc|
+    render_error exc, status: 422,
+                      title: "Invalid input #{exc.message}",
+                      description: exc.message
+  end
+
   # -- not authorized.---------------------------------------------------------
 
   class NotAuthorizedError < RuntimeError

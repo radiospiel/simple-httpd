@@ -81,3 +81,9 @@ Style/StderrPuts:
 
 Style/NonNilCheck:
   Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Style/StringLiteralsInInterpolation:
+  Enabled: false

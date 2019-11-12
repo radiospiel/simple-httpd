@@ -29,18 +29,25 @@ class Simple::Httpd::BaseController
 
   public
 
-  def parsed_json_body
-    @parsed_json_body ||= parse_json_body
+  def parsed_body
+    return @parsed_body if defined? @parsed_body
+
+    @parsed_body = parse_body
+  rescue RuntimeError => e
+    raise ArgumentError, e.to_s
   end
 
   private
 
-  def parse_json_body
-    unless request.content_type =~ /application\/json/
-      raise "Cannot parse non-JSON request body w/content_type #{request.content_type.inspect}"
+  def parse_body
+    case request.media_type
+    when "application/json"
+      request.body.rewind
+      body = request.body.read
+      body == "" ? {} : JSON.parse(body)
+    else
+      # parses form data
+      request.POST
     end
-
-    request.body.rewind
-    JSON.parse(request.body.read)
   end
 end
