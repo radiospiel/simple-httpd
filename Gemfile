@@ -10,3 +10,7 @@ gem 'rspec', '~> 3.7'
 # gem 'rubocop', '~> 0.61.1'
 gem 'simplecov', '~> 0'
 gem 'byebug'
+
+if ENV["PRELOAD_SERVER_GEM"]
+  gem ENV["PRELOAD_SERVER_GEM"]
+end

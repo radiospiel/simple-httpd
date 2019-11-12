@@ -5,10 +5,28 @@ require "byebug"
 require "rspec"
 require "rspec-httpd"
 
+if ENV["PRELOAD_SERVER_GEM"]
+  require ENV["PRELOAD_SERVER_GEM"]
+end
+
+# You can comment parts of the command below by prepending the line with a '#'
+HTTPD_COMMAND = <<~CMD
+  PORT=12345
+  bin/simple-httpd
+  --environment=test
+  examples/ex1
+  examples/ex2
+  examples/v2:api/v2
+  --services=examples/services
+  Example::Service:service/example
+CMD
+
 RSpec::Httpd.configure do |config|
   config.host = "127.0.0.1"
   config.port = 12_345
-  config.command = "bin/simple-httpd --environment=test --port=12345 examples/ex1 examples/ex2 examples/v2:api/v2"
+
+  # remove commented parts from HTTPD_COMMAND
+  config.command = HTTPD_COMMAND.split(/\s*\n\s*/m).grep(/^\s*[^#]/).join(" ")
 end
 
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
