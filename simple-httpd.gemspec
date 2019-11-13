@@ -24,7 +24,7 @@ Gem::Specification.new do |gem|
   # dependencies
   gem.add_dependency "neatjson", "~> 0.8.4"
   gem.add_dependency "sinatra", "~> 2"
-  gem.add_dependency "sinatra-reloader", "~> 1"
+  # gem.add_dependency "sinatra-reloader", "~> 1"
   gem.add_dependency "expectation", "~> 1"
   gem.add_dependency "simple-cli"
 end
