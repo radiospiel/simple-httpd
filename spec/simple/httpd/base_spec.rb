@@ -13,16 +13,4 @@ describe Simple::Httpd do
       expect_response "root"
     end
   end
-
-  describe "static files" do
-    it "returns a static file" do
-      http.get "/README.txt"
-      expect_response "This is a README file\n"
-    end
-
-    it "does not return an unsecured static file" do
-      http.get "/root.rb"
-      expect_response 404
-    end
-  end
 end

@@ -20,6 +20,7 @@ HTTPD_COMMAND = <<~CMD
   examples/v2:api/v2
   --services=examples/services
   Example::Service:service/example
+  2> log/test.log
 CMD
 
 RSpec::Httpd.configure do |config|
