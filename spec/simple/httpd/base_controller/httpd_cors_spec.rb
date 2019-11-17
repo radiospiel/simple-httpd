@@ -7,9 +7,14 @@ describe Simple::Httpd do
       expect(http.response.headers.keys).to include("access-control-allow-origin")
     end
 
-    it "returns CORS headers" do
-      http.get "/README.txt"
-      expect(http.response.headers.keys).not_to include("access-control-allow-origin")
+    it "sends proper headers in all request methods" do
+      verbs = [ :get, :post, :put, :delete, :options, :head ]
+      verbs.each do |verb|
+      http.send verb, "/info/inspect?qux"
+
+      expect_response 200
+      expect(http.response.headers.keys).to include("access-control-allow-origin")
+end
     end
   end
 end
