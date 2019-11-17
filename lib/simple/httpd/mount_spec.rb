@@ -83,7 +83,7 @@ class Simple::Httpd::MountSpec
 
     # wraps all helpers into a Simple::Httpd::BaseController subclass
     def build_controller
-      controller = H.subclass(::Simple::Httpd::BaseController)
+      controller = H.subclass(::Simple::Httpd::BaseController, description: "ServiceMountSpec")
       setup_action_routes! controller
       controller
     end

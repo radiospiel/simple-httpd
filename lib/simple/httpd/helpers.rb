@@ -47,6 +47,8 @@ module Simple::Httpd::Helpers
 
   # subclass a klass with an optional description
   def subclass(klass, description: nil)
+    raise "Missing description" unless description
+
     subclass = Class.new(klass)
     subclass.define_method(:inspect) { description } if description
     subclass

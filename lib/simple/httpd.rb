@@ -14,7 +14,7 @@ require "simple/httpd/version"
 require "simple/httpd/mount_spec"
 require "simple/httpd/server"
 
-require "simple/httpd/service"
+require "simple/httpd/service_adapter"
 
 class Simple::Httpd
   SELF = self
