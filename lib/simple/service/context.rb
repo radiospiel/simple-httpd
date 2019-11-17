@@ -1,28 +1,34 @@
 module Simple::Service
   class Context
+    class ReadOnlyError < RuntimeError
+      def initialize(key)
+        super "Cannot overwrite existing context setting #{key.inspect}"
+      end
+    end
+
     def initialize
       @hsh = {}
+    end
+
+    private
+
+    def [](key)
+      @hsh[key]
+    end
+
+    def []=(key, value)
+      existing_value = @hsh[key]
+
+      unless existing_value.nil? || existing_value == value
+        raise ReadOnlyError, key
+      end
+
+      @hsh[key] = value
     end
 
     IDENTIFIER_PATTERN = "[a-z][a-z0-9_]*"
     IDENTIFIER_REGEXP = Regexp.compile("\\A#{IDENTIFIER_PATTERN}\\z")
     ASSIGNMENT_REGEXP = Regexp.compile("\\A(#{IDENTIFIER_PATTERN})=\\z")
-
-    def [](key)
-      key = key.to_sym
-      @hsh[key]
-    end
-
-    def []=(key, value)
-      key = key.to_sym
-      existing_value = @hsh[key]
-
-      unless existing_value.nil? || existing_value == value
-        raise "Cannot overwrite existing context setting #{key.inspect}"
-      end
-
-      @hsh[key] = value
-    end
 
     def method_missing(sym, *args, &block)
       if block
