@@ -69,8 +69,7 @@ module Simple::Httpd::CLI
 
     ::Simple::Httpd.listen!(*mount_specs, environment: environment,
                                           host: host,
-                                          port: port,
-                                          logger: logger)
+                                          port: port)
   end
 
   private

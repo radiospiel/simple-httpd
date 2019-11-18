@@ -19,12 +19,21 @@ require "simple/httpd/service_adapter"
 class Simple::Httpd
   SELF = self
 
-  def self.logger=(logger)
-    @logger = logger
+  # returns a logger for Simple::Httpd.
+  #
+  # Initially we default to <tt>::Simple::CLI.logger</tt>. This gives colored
+  # logging during loading and mounting. Note that Simple::Httpd::Server builds
+  # its own logger instance to to pass that along to the web server.
+  def self.logger
+    @logger ||= ::Simple::CLI.logger
   end
 
-  def self.logger
-    @logger ||= ::Logger.new(STDERR, level: ::Logger::INFO)
+  def self.custom_logger?
+    @logger && @logger != ::Simple::CLI.logger
+  end
+
+  def self.logger=(logger)
+    @logger = logger
   end
 
   # Converts the passed in args into a Simple::Httpd application.
@@ -34,7 +43,7 @@ class Simple::Httpd
   # respond to call/3) it redirects to <tt>Server.listen!</tt> right
   # away - this way this method can be used as a helper method
   # to easily start a Rack server.
-  def self.listen!(*mount_specs, environment: "development", host: nil, port:, logger: nil, &block)
+  def self.listen!(*mount_specs, environment: "development", host: nil, port:, &block)
     # If there is no argument but a block use the block as a rack server
     if block
       raise ArgumentError, "Can't deal w/block *and* mount_specs" unless mount_specs.empty?
@@ -49,7 +58,7 @@ class Simple::Httpd
       app.rack
     end
 
-    Server.listen!(app, environment: environment, host: host, port: port, logger: logger)
+    Server.listen!(app, environment: environment, host: host, port: port)
   end
 
   # Converts the passed in arguments into a Simple::Httpd application.
@@ -107,11 +116,5 @@ class Simple::Httpd
 
   def built?
     @rack != nil
-  end
-
-  public
-
-  def listen!(environment:, port:, logger:)
-    SELF.listen!(rack, environment: environment, port: port, logger: logger)
   end
 end
