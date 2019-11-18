@@ -28,7 +28,7 @@ class Simple::Httpd::BaseController
     private
 
     def build_url_query(params)
-      params = params.reject { |_k, v| v.nil? || v.empty? }
+      params = params.reject { |_k, v| v.nil? || v.to_s.empty? }
       return nil if params.empty?
 
       params.map { |k, value| "#{k}=#{escape(value.to_s)}" }.join("&")
