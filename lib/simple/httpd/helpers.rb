@@ -53,4 +53,31 @@ module Simple::Httpd::Helpers
     subclass.define_method(:inspect) { description } if description
     subclass
   end
+
+  def filter_stacktrace_entry?(line)
+    return true if line =~ /\.rvm\b/
+
+    false
+  end
+
+  # Receives a stacktrace (like, for example, from Kernel#callers or
+  # from Exception#backtrace), and removes all lines that point to
+  # ".rvm". It also removes the working directory from the file paths.
+  #
+  # returns the cleaned array
+  def filtered_stacktrace(stacktrace, count: 20)
+    lines = []
+
+    stacktrace[0..count].inject(false) do |filtered_last_line, line|
+      if filter_stacktrace_entry?(line)
+        lines << "... (lines removed) ..." unless filtered_last_line
+        true
+      else
+        lines << shorten_path(line)
+        false
+      end
+    end
+
+    lines
+  end
 end

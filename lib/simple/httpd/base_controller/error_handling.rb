@@ -1,7 +1,5 @@
 require_relative "./json"
 
-# rubocop:disable Metrics/ClassLength
-
 class Simple::Httpd::BaseController
   H = ::Simple::Httpd::Helpers
 
@@ -133,7 +131,7 @@ class Simple::Httpd::BaseController
       === #{exc.class.name} =====================
       #{exc.message.chomp}
 
-      #{filtered_backtrace(exc)}
+      #{H.filtered_stacktrace(exc.backtrace).join("\n")}
       ==================================================================
     MSG
 
@@ -151,26 +149,5 @@ class Simple::Httpd::BaseController
   def error_description(exc)
     exc.message
     # "#{exc.message}, from #{exc.backtrace.join("\n\t")}"
-  end
-
-  def remove_wd(str)
-    @wd ||= Dir.getwd
-
-    if str.start_with?(@wd)
-      str[(@wd.length + 1)..-1]
-    else
-      str
-    end
-  end
-
-  def filtered_backtrace(exc, count: 20)
-    lines = exc.backtrace.map do |line|
-      next "...\n" if line =~ /\.rvm\b/
-
-      "#{remove_wd(line)}\n"
-    end
-
-    s = lines[0, count].join("")
-    s.gsub(/(\.\.\.\n)+/, "   ... (lines removed) ...\n")
   end
 end
