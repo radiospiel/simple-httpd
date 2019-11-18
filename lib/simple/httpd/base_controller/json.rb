@@ -12,18 +12,13 @@ class Simple::Httpd::BaseController
 
   configure :development, :test do
     begin
-      @@neatjson = true
       require "neatjson"
     rescue LoadError
-      @@neatjson = false
+      :nop
     end
 
     def generate_json(result)
-      if @@neatjson
-        JSON.neat_generate(result)
-      else
-        JSON.pretty_generate(result)
-      end
+      JSON.respond_to?(:neat_generate) ? JSON.neat_generate(result) : JSON.pretty_generate(result)
     end
   end
 
