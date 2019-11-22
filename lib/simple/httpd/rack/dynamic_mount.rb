@@ -39,7 +39,10 @@ class Simple::Httpd::Rack::DynamicMount
   private
 
   def service_path
-    path.gsub(/\/\z/, "") + ".services"
+    cleaned_path = path.gsub(/\/\z/, "")
+    return nil if cleaned_path == "." # i.e. mounting current directory
+
+    "#{cleaned_path}.services"
   end
 
   def logger
@@ -47,6 +50,8 @@ class Simple::Httpd::Rack::DynamicMount
   end
 
   def load_services!
+    return unless service_path
+
     logger.info "Loading service files from #{service_path}"
     Dir.glob("#{service_path}/**/*.rb").sort.each do |path|
       logger.debug "Loading service file #{path.inspect}"
