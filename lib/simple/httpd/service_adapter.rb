@@ -12,42 +12,29 @@ module Simple::Httpd::ServiceAdapter
   end
 
   def get(path, opts = {}, &block)
-    return super unless mounting_service?
-
     install_route("GET", path, opts, &block)
   end
 
   def post(path, opts = {}, &block)
-    return super unless mounting_service?
-
     install_route("POST", path, opts, &block)
   end
 
   def put(path, opts = {}, &block)
-    return super unless mounting_service?
-
     install_route("PUT", path, opts, &block)
   end
 
   def delete(path, opts = {}, &block)
-    return super unless mounting_service?
-
     install_route("DELETE", path, opts, &block)
   end
 
   def head(path, opts = {}, &block)
-    return super unless mounting_service?
-
     install_route("HEAD", path, opts, &block)
   end
 
   private
 
-  def mounting_service?
-    !!@service
-  end
-
   def service_route?(_verb, path, opts, &block)
+    return false if !@service
     return false if block
     return false unless opts.empty?
     return false unless path.is_a?(Hash) && path.size == 1
@@ -82,7 +69,10 @@ module Simple::Httpd::ServiceAdapter
   def handle_non_service_route(verb, path, opts, &block)
     route(verb, path, opts) do
       result = instance_eval(&block)
-      encode_result(result)
+      unless headers["Content-Type"]
+        result = encode_result(result)
+      end
+      result
     end
   end
 
