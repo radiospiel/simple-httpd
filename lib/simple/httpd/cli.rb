@@ -13,7 +13,7 @@ module Simple::Httpd::CLI
 
   # Runs a simple httpd server
   #
-  # A mount_spec is either the location of a directory, which would then be mounted
+  # A mount is either the location of a directory, which would then be mounted
   # at the "/" HTTP location, or a directory followed by a colon and where to mount
   # the directory.
   #
@@ -40,12 +40,12 @@ module Simple::Httpd::CLI
   # - a mount_point <tt>[ mount_point, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
   # - a string denoting a mount_point, e.g. "path/to/root:/")
   # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
-  def main(*mount_specs, environment: "development", services: nil)
+  def main(*mounts, environment: "development", services: nil)
     ::Simple::Httpd.env = environment
 
     start_simplecov if environment == "test"
 
-    mount_specs << "." if mount_specs.empty?
+    mounts << "." if mounts.empty?
 
     host = ENV["HOST"] || "127.0.0.1"
     port = Integer(ENV["PORT"] || 8181)
@@ -54,8 +54,8 @@ module Simple::Httpd::CLI
     require "simple/httpd"
 
     load_services! services if services
-    logger.info "start to listen on #{mount_specs.inspect}"
-    ::Simple::Httpd.listen!(*mount_specs, environment: environment,
+    logger.info "start to listen on #{mounts.inspect}"
+    ::Simple::Httpd.listen!(*mounts, environment: environment,
                                           host: host,
                                           port: port)
   end

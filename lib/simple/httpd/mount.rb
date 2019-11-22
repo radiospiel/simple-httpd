@@ -3,7 +3,7 @@
 require "simple-service"
 require_relative "./rack"
 
-class Simple::Httpd::MountSpec
+class Simple::Httpd::Mount
   def self.build(arg, at:)
     if at
       entity, mount_point = arg, at
@@ -16,8 +16,8 @@ class Simple::Httpd::MountSpec
 
     mount_point = normalize_and_verify_mount_point(mount_point)
 
-    ServiceMountSpec.build(mount_point, service: entity) ||
-      PathMountSpec.build(mount_point, path: entity) ||
+    ServiceMount.build(mount_point, service: entity) ||
+      PathMount.build(mount_point, path: entity) ||
       raise(ArgumentError, "#{mount_point}: don't know how to mount #{entity.inspect}")
   end
 
@@ -33,7 +33,7 @@ class Simple::Httpd::MountSpec
 
   attr_reader :mount_point
 
-  class PathMountSpec < ::Simple::Httpd::MountSpec
+  class PathMount < ::Simple::Httpd::Mount
     Rack = ::Simple::Httpd::Rack
 
     attr_reader :path, :mount_point
@@ -41,7 +41,7 @@ class Simple::Httpd::MountSpec
     def self.build(mount_point, path:)
       path = path.gsub(/\/$/, "") # remove trailing "/"
 
-      raise ArgumentError, "You probably don't want to mount your root directory, check mount_spec" if path == ""
+      raise ArgumentError, "You probably don't want to mount your root directory, check mount" if path == ""
       return unless Dir.exist?(path)
 
       new(mount_point, path)
@@ -59,7 +59,7 @@ class Simple::Httpd::MountSpec
     end
   end
 
-  class ServiceMountSpec < ::Simple::Httpd::MountSpec
+  class ServiceMount < ::Simple::Httpd::Mount
     H = ::Simple::Httpd::Helpers
 
     attr_reader :service
@@ -83,7 +83,7 @@ class Simple::Httpd::MountSpec
 
     # wraps all helpers into a Simple::Httpd::BaseController subclass
     def build_controller
-      controller = H.subclass(::Simple::Httpd::BaseController, description: "ServiceMountSpec")
+      controller = H.subclass(::Simple::Httpd::BaseController, description: "ServiceMount")
       setup_action_routes! controller
       controller
     end

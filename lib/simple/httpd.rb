@@ -11,7 +11,7 @@ require "simple/service"
 require "simple/httpd/helpers"
 require "simple/httpd/base_controller"
 require "simple/httpd/version"
-require "simple/httpd/mount_spec"
+require "simple/httpd/mount"
 require "simple/httpd/server"
 
 require "simple/httpd/service_adapter"
@@ -43,18 +43,18 @@ class Simple::Httpd
   # respond to call/3) it redirects to <tt>Server.listen!</tt> right
   # away - this way this method can be used as a helper method
   # to easily start a Rack server.
-  def self.listen!(*mount_specs, environment: "development", host: nil, port:, &block)
+  def self.listen!(*mounts, environment: "development", host: nil, port:, &block)
     # If there is no argument but a block use the block as a rack server
     if block
-      raise ArgumentError, "Can't deal w/block *and* mount_specs" unless mount_specs.empty?
+      raise ArgumentError, "Can't deal w/block *and* mounts" unless mounts.empty?
 
       app = block
-    elsif mount_specs.length == 1 && mount_specs.first.respond_to?(:call)
+    elsif mounts.length == 1 && mounts.first.respond_to?(:call)
       # there is one argument, and that looks like a Rack app: return that.
-      app = mount_specs.first
+      app = mounts.first
     else
       # Build a Httpd app, and listen
-      app = build(*mount_specs)
+      app = build(*mounts)
       app.rack
     end
 
@@ -64,17 +64,17 @@ class Simple::Httpd
   # Converts the passed in arguments into a Simple::Httpd application.
   #
   # For a description of mounts see <tt>#add</tt>
-  def self.build(*mount_specs)
-    new(*mount_specs)
+  def self.build(*mounts)
+    new(*mounts)
   end
 
   private
 
   # Builds a Simple::Httpd application.
-  def initialize(*mount_specs)
-    @mount_specs = []
-    mount_specs.map do |mount_spec|
-      mount(mount_spec, at: nil)
+  def initialize(*mounts)
+    @mounts = []
+    mounts.map do |mount|
+      mount(mount, at: nil)
     end
   end
 
@@ -88,10 +88,10 @@ class Simple::Httpd
   # - a string denoting a mount_point, e.g. "path/to/root:/")
   # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
   #
-  def mount(mount_spec, at: nil)
+  def mount(mount, at: nil)
     raise ArgumentError, "Cannot mount onto an already built app" if built?
 
-    @mount_specs << MountSpec.build(mount_spec, at: at)
+    @mounts << Mount.build(mount, at: at)
   end
 
   extend Forwardable
@@ -106,8 +106,8 @@ class Simple::Httpd
   def build_rack
     uri_map = {}
 
-    @mount_specs.group_by(&:mount_point).map do |mount_point, mount_specs|
-      apps = mount_specs.map(&:build_rack_apps).flatten
+    @mounts.group_by(&:mount_point).map do |mount_point, mounts|
+      apps = mounts.map(&:build_rack_apps).flatten
       uri_map[mount_point] = Rack.merge(apps)
     end
 
