@@ -52,27 +52,36 @@ module Simple::Httpd::CLI
 
     # late loading simple/httpd, for simplecov support
     require "simple/httpd"
-    helpers = ::Simple::Httpd::Helpers
 
-    services&.split(",")&.each do |service_path|
-      paths = if Dir.exist?(service_path)
-                Dir.glob("#{service_path}/**/*.rb").sort
-              else
-                [service_path]
-              end
-
-      paths.each do |path|
-        logger.info "Loading service(s) from #{helpers.shorten_path path}"
-        load path
-      end
-    end
-
+    load_services! services if services
+    logger.info "start to listen on #{mount_specs.inspect}"
     ::Simple::Httpd.listen!(*mount_specs, environment: environment,
                                           host: host,
                                           port: port)
   end
 
   private
+
+  def load_services(paths)
+    expect! paths => String
+
+    resolve_service_path(paths).each do |path|
+      logger.info "Loading service(s) from #{::Simple::Httpd::Helpers.shorten_path path}"
+      load path
+    end
+  end
+
+  def resolve_service_path(paths)
+    # each service_path either denotes the path to a file or to a directory
+    # of files.
+    paths.split(",").each_with_object([]) do |service_path, ary|
+      if Dir.exist?(service_path)
+        ary.concat Dir.glob("#{service_path}/**/*.rb").sort
+      else
+        ary << service_path
+      end
+    end
+  end
 
   def stderr_logger
     logger = ::Logger.new STDERR
