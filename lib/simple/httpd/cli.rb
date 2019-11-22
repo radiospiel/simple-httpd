@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-
 module Simple
   class Httpd
     class << self
@@ -60,9 +58,13 @@ module Simple::Httpd::CLI
                                           port: port)
   end
 
+  def routes(*mounts, environment: "development", services: nil)
+    # build the application and print the routes
+  end
+
   private
 
-  def load_services(paths)
+  def load_services!(paths)
     expect! paths => String
 
     resolve_service_path(paths).each do |path|
