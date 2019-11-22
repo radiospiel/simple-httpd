@@ -20,7 +20,9 @@ module Simple::Httpd::CLI
   #
   # Examples:
   #
-  #   simple-httpd --port=8080 httpd/root --service=src/to/service.rb MyService:/ httpd/assets:assets
+  #   PORT=8080 simple-httpd start httpd/root --service=src/to/service.rb \
+  #                                           MyService:/
+  #                                           httpd/assets:assets
   #
   # serves the content of ./httpd/root on http://0.0.0.0/ and the content of httpd/assets
   # on http://0.0.0.0/assets.
@@ -28,7 +30,8 @@ module Simple::Httpd::CLI
   # Options:
   #
   #   --environment=ENV         ... the environment setting, which adjusts configuration.
-  #   --services=<path>,<path>  ... load these ruby file during startup. Used to define service objects.
+  #   --services=<path>,<path>  ... load these ruby files or directories during startup. This
+  #                                 can be used to define service objects.
   #
   # simple-httpd respects the HOST and PORT environment values to determine the interface
   # and port to listen to. Default values are "127.0.0.1" and 8181.
@@ -38,24 +41,17 @@ module Simple::Httpd::CLI
   # - a mount_point <tt>[ mount_point, path ]</tt>, e.g. <tt>[ "path/to/root", "/"]</tt>
   # - a string denoting a mount_point, e.g. "path/to/root:/")
   # - a string denoting a "/" mount_point (e.g. "path", which is shorthand for "path:/")
-  def main(*mounts, environment: "development", services: nil)
-    ::Simple::Httpd.env = environment
-
-    start_simplecov if environment == "test"
-
-    mounts << "." if mounts.empty?
-
+  def start(*mounts, environment: "development", services: nil)
     host = ENV["HOST"] || "127.0.0.1"
     port = Integer(ENV["PORT"] || 8181)
 
-    # late loading simple/httpd, for simplecov support
-    require "simple/httpd"
+    prepare_environment!(environment: environment)
 
-    load_services! services if services
+    app = build_app!(mounts: mounts, services: services)
     logger.info "start to listen on #{mounts.inspect}"
-    ::Simple::Httpd.listen!(*mounts, environment: environment,
-                                          host: host,
-                                          port: port)
+    ::Simple::Httpd.listen!(app, environment: environment,
+                                 host: host,
+                                 port: port)
   end
 
   def routes(*mounts, environment: "development", services: nil)
@@ -63,6 +59,24 @@ module Simple::Httpd::CLI
   end
 
   private
+
+  def prepare_environment!(environment:)
+    ::Simple::Httpd.env = environment
+    start_simplecov if environment == "test"
+
+    # late loading simple/httpd, for simplecov support
+    require "simple/httpd"
+  end
+
+  def build_app!(mounts:, services:)
+    mounts << "." if mounts.empty?
+    logger.info "building server on #{mounts.inspect}"
+
+    load_services! services if services
+    app = ::Simple::Httpd.build(*mounts)
+    app.rack # builds the rack application
+    app
+  end
 
   def load_services!(paths)
     expect! paths => String

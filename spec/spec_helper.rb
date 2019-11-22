@@ -12,7 +12,7 @@ end
 # You can comment parts of the command below by prepending the line with a '#'
 HTTPD_COMMAND = <<~CMD
   PORT=12345
-  bin/simple-httpd
+  bin/simple-httpd start
   --environment=test
   examples/ex1
   examples/ex2

@@ -52,10 +52,10 @@ class Simple::Httpd::Mount
     end
 
     def build_rack_apps
-      [
-        Rack::DynamicMount.build(mount_point, path),
-        Rack::StaticMount.build(mount_point, path)
-      ].compact
+      dynamic_mount = Rack::DynamicMount.build(mount_point, path)
+      static_mount = Rack::StaticMount.build(mount_point, path)
+
+      [dynamic_mount, static_mount].compact
     end
   end
 
