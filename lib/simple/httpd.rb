@@ -80,6 +80,12 @@ class Simple::Httpd
 
   public
 
+  def route_descriptions
+    @mounts.inject([]) do |ary, mount|
+      ary.concat mount.route_descriptions
+    end
+  end
+
   # Adds one or more mount_points
   #
   # Each entry in mounts can be either:

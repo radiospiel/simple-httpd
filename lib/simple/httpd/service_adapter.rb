@@ -34,7 +34,7 @@ module Simple::Httpd::ServiceAdapter
   private
 
   def service_route?(_verb, path, opts, &block)
-    return false if !@service
+    return false unless @service
     return false if block
     return false unless opts.empty?
     return false unless path.is_a?(Hash) && path.size == 1
@@ -52,11 +52,14 @@ module Simple::Httpd::ServiceAdapter
   end
 
   def handle_service_route(verb, path, action_name)
-    # Verify existence of this action.
-    @service.fetch_action(action_name)
+    # Fetch action (to get a source_location). At the same time this also
+    # verifies the existence of this action in the first place.
+    action = @service.fetch_action(action_name)
+
+    describe_route!(verb: verb, path: path, source_location: action.source_location)
 
     # get service reference into binding, to make it available for the route
-    # definition.
+    # definition's callback block.
     service = @service
 
     # define sinatra route.
@@ -67,6 +70,8 @@ module Simple::Httpd::ServiceAdapter
   end
 
   def handle_non_service_route(verb, path, opts, &block)
+    describe_route!(verb: verb, path: path, source_location: block.source_location) if block
+
     route(verb, path, opts) do
       result = instance_eval(&block)
       unless headers["Content-Type"]

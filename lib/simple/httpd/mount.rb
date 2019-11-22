@@ -1,10 +1,12 @@
-# rubocop:disable Metrics/AbcSize, Style/ParallelAssignment
+# rubocop:disable Style/ParallelAssignment
 
 require "simple-service"
 require_relative "./rack"
 
-class Simple::Httpd::Mount
-  def self.build(arg, at:)
+module Simple::Httpd::Mount
+  extend self
+
+  def build(arg, at:)
     if at
       entity, mount_point = arg, at
     else
@@ -20,7 +22,9 @@ class Simple::Httpd::Mount
       raise(ArgumentError, "#{mount_point}: don't know how to mount #{entity.inspect}")
   end
 
-  def self.normalize_and_verify_mount_point(mount_point)
+  private
+
+  def normalize_and_verify_mount_point(mount_point)
     mount_point ||= "/"                           # fall back to "/"
     mount_point = File.join("/", mount_point)     # make sure we start at "/"
 
@@ -30,9 +34,7 @@ class Simple::Httpd::Mount
     mount_point
   end
 
-  attr_reader :mount_point
-
-  class PathMount < ::Simple::Httpd::Mount
+  class PathMount
     Rack = ::Simple::Httpd::Rack
 
     attr_reader :path, :mount_point
@@ -48,6 +50,12 @@ class Simple::Httpd::Mount
 
     def initialize(mount_point, path)
       @mount_point, @path = mount_point, path
+    end
+
+    def route_descriptions
+      build_rack_apps.inject([]) do |ary, app|
+        ary.concat app.route_descriptions
+      end
     end
 
     def build_rack_apps

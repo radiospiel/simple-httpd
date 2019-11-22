@@ -55,7 +55,15 @@ module Simple::Httpd::CLI
   end
 
   def routes(*mounts, environment: "development", services: nil)
-    # build the application and print the routes
+    prepare_environment!(environment: environment)
+    app = build_app!(mounts: mounts, services: services)
+    route_descriptions = app.route_descriptions
+
+    puts "Found #{route_descriptions.count} routes"
+
+    route_descriptions.sort_by(&:path).each do |route|
+      puts route
+    end
   end
 
   private

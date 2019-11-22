@@ -7,12 +7,13 @@ class Simple::Httpd::Rack::DynamicMount
   H = ::Simple::Httpd::Helpers
   Rack = ::Simple::Httpd::Rack
 
+  extend Forwardable
+
+  delegate :call => :@rack_app # rubocop:disable Style/HashSyntax
+
   def self.build(mount_point, path)
     expect! path => String
-
-    url_map = new(mount_point, path).url_map
-
-    ::Rack::URLMap.new(url_map)
+    new(mount_point, path)
   end
 
   attr_reader :path
@@ -20,75 +21,66 @@ class Simple::Httpd::Rack::DynamicMount
 
   def initialize(mount_point, path)
     @mount_point = mount_point
-    @path = path
+    @path = path.gsub(/\/\z/, "") # remove trailing "/"
+
+    setup_paths!
+    load_service_files!
+    @root_controller = build_root_controller # also loads helpers
+    @url_map = build_url_map
+
+    @rack_app = ::Rack::URLMap.new(@url_map)
   end
 
-  def url_map
-    load_services!
-
-    # determine source_paths and controller_paths
-    source_paths = Dir.glob("#{path}/**/*.rb")
-
-    helper_paths, controller_paths = source_paths.partition { |str| /_helper(s?)\.rb$/ =~ str }
-
-    # build root controller
-    root = build_root_controller(helper_paths)
-    build_url_map(controller_paths, root: root)
-  end
+  # RouteDescriptions are being built during build_url_map
+  include ::Simple::Httpd::RouteDescriptions
 
   private
-
-  def service_path
-    cleaned_path = path.gsub(/\/\z/, "")
-    return nil if cleaned_path == "." # i.e. mounting current directory
-
-    "#{cleaned_path}.services"
-  end
 
   def logger
     ::Simple::Httpd.logger
   end
 
-  def load_services!
-    return unless service_path
+  def setup_paths!
+    @source_paths = Dir.glob("#{path}/**/*.rb")
+    @helper_paths, @controller_paths = @source_paths.partition { |str| /_helper(s?)\.rb$/ =~ str }
 
-    logger.info "Loading service files from #{service_path}"
-    Dir.glob("#{service_path}/**/*.rb").sort.each do |path|
+    logger.info "#{path}: found #{@source_paths.count} sources, #{@helper_paths.count} helpers"
+  end
+
+  def load_service_files!
+    return if path == "." # i.e. mounting current directory
+
+    service_path = "#{path}.services"
+    service_files = Dir.glob("#{service_path}/**/*.rb")
+    return if service_files.empty?
+
+    logger.info "#{service_path}: loading #{service_files.count} service file(s)"
+    service_files.sort.each do |path|
       logger.debug "Loading service file #{path.inspect}"
       load path
     end
   end
 
-  # rubocop:disable Metrics/AbcSize
-  def build_url_map(controller_paths, root:)
-    controller_paths.sort.each_with_object({}) do |absolute_path, url_map|
+  # wraps all helpers into a Simple::Httpd::BaseController subclass
+  def build_root_controller
+    H.subclass ::Simple::Httpd::BaseController,
+               paths: @helper_paths.sort,
+               description: "root controller at #{path} w/#{@helper_paths.count} helpers"
+  end
+
+  def build_url_map
+    @controller_paths.sort.each_with_object({}) do |absolute_path, hsh|
       relative_path = absolute_path[(path.length)..-1]
 
       relative_mount_point = relative_path == "/root.rb" ? "/" : relative_path.gsub(/\.rb$/, "")
-      controller_class = load_controller absolute_path, root: root
+      controller_class = H.subclass @root_controller, description: "controller at #{absolute_path}", paths: absolute_path
 
-      logger.info do
-        absolute_mount_point = File.join(mount_point, relative_mount_point)
-        routes_count = controller_class.routes.reject { |verb, _| verb == "HEAD" }.values.sum(&:count)
-
-        "#{absolute_mount_point}: mounting #{routes_count} route(s) from #{H.shorten_path absolute_path}"
+      controller_class.route_descriptions.each do |route|
+        route = route.prefix(@mount_point, relative_mount_point)
+        describe_route! route
       end
 
-      url_map.update relative_mount_point => controller_class
+      hsh.update relative_mount_point => controller_class
     end
-  end
-
-  # wraps all helpers into a Simple::Httpd::BaseController subclass
-  def build_root_controller(helper_paths)
-    klass = H.subclass ::Simple::Httpd::BaseController,
-                       description: "root controller at #{path} w/#{helper_paths.count} helpers"
-
-    H.instance_eval_paths klass, *helper_paths.sort
-  end
-
-  # wraps the source file in path into a root_controller
-  def load_controller(path, root:)
-    klass = H.subclass root, description: "controller at #{path}"
-    H.instance_eval_paths klass, path
   end
 end

@@ -17,6 +17,12 @@ class Simple::Httpd::BaseController < Sinatra::Base
   end
 end
 
+require_relative "./route"
+
+class Simple::Httpd::BaseController
+  extend ::Simple::Httpd::RouteDescriptions
+end
+
 Dir.chdir __dir__ do
   Dir.glob("base_controller/*.rb").sort.each do |file|
     require_relative file

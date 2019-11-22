@@ -37,8 +37,10 @@ module Simple::Httpd::Helpers
   end
 
   # instance_eval zero or more paths in the context of obj
-  def instance_eval_paths(obj, *paths)
-    paths.each do |path|
+  def instance_eval_paths(obj, paths:)
+    return obj unless paths
+
+    Array(paths).each do |path|
       # STDERR.puts "Loading #{path}"
       obj.instance_eval File.read(path), path, 1
     end
@@ -46,11 +48,12 @@ module Simple::Httpd::Helpers
   end
 
   # subclass a klass with an optional description
-  def subclass(klass, description: nil)
+  def subclass(klass, paths: nil, description: nil)
     raise "Missing description" unless description
 
     subclass = Class.new(klass)
     subclass.define_method(:inspect) { description } if description
+    instance_eval_paths subclass, paths: paths if paths
     subclass
   end
 

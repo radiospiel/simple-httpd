@@ -34,6 +34,10 @@ module Simple::Service
       end
     end
 
+    def source_location
+      @service.instance_method(name).source_location
+    end
+
     # build a service_instance and run the action, with arguments constructed from
     # args_hsh and params_hsh
     def invoke(args_hsh, params_hsh)
