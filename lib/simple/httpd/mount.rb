@@ -16,8 +16,7 @@ class Simple::Httpd::Mount
 
     mount_point = normalize_and_verify_mount_point(mount_point)
 
-    ServiceMount.build(mount_point, service: entity) ||
-      PathMount.build(mount_point, path: entity) ||
+    PathMount.build(mount_point, path: entity) ||
       raise(ArgumentError, "#{mount_point}: don't know how to mount #{entity.inspect}")
   end
 
@@ -56,51 +55,6 @@ class Simple::Httpd::Mount
       static_mount = Rack::StaticMount.build(mount_point, path)
 
       [dynamic_mount, static_mount].compact
-    end
-  end
-
-  class ServiceMount < ::Simple::Httpd::Mount
-    H = ::Simple::Httpd::Helpers
-
-    attr_reader :service
-
-    def self.build(mount_point, service:)
-      service = ::Simple::Service.resolve(service)
-      return unless service
-
-      new(mount_point, service)
-    end
-
-    def initialize(mount_point, service)
-      @mount_point, @service = mount_point, service
-    end
-
-    def build_rack_apps
-      [build_controller]
-    end
-
-    private
-
-    # wraps all helpers into a Simple::Httpd::BaseController subclass
-    def build_controller
-      controller = H.subclass(::Simple::Httpd::BaseController, description: "ServiceMount")
-      setup_action_routes! controller
-      controller
-    end
-
-    def setup_action_routes!(controller)
-      action_names = service.actions.keys
-
-      controller.mount_service(service) do |service|
-        action_names.each do |action_name|
-          ::Simple::Httpd.logger.debug "#{mount_point}/#{action_name} -> #{service.name}##{action_name}"
-          controller.post "/#{action_name}" => action_name
-        end
-      end
-
-      ::Simple::Httpd.logger.info do
-        "#{mount_point}: mounting #{action_names.count} actions(s) from #{service.name} service"
-      end
     end
   end
 end

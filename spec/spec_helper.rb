@@ -19,7 +19,6 @@ HTTPD_COMMAND = <<~CMD
   examples/ex3
   examples/v2:api/v2
   --services=examples/services
-  Example::Service:service/example
 #  2> log/test.log
 CMD
 
