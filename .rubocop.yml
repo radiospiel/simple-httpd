@@ -8,6 +8,7 @@ AllCops:
     - '*.gemspec'
     - 'Gemfile'
     - 'Rakefile'
+    - 'scripts/*.rb'
 
 Metrics/LineLength:
   Max: 140
@@ -86,4 +87,10 @@ Metrics/ParameterLists:
   Enabled: false
 
 Style/StringLiteralsInInterpolation:
+  Enabled: false
+
+Style/DoubleNegation:
+  Enabled: false
+
+Style/ParallelAssignment:
   Enabled: false

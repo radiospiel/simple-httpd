@@ -8,4 +8,4 @@ Bundler.setup
 require "simple/cli"
 require "simple/httpd/cli"
 
-Simple::Httpd::CLI.run!
+Simple::CLI.run! Simple::Httpd::CLI

@@ -52,9 +52,9 @@ module Simple::Httpd::ServiceAdapter
   end
 
   def handle_service_route(verb, path, action_name)
-    # Fetch action (to get a source_location). At the same time this also
-    # verifies the existence of this action in the first place.
-    action = @service.fetch_action(action_name)
+    # Fetch action's source_location. This also verifies that the action
+    # is defined in the first place.
+    action = ::Simple::Service.action(@service, action_name)
 
     describe_route!(verb: verb, path: path, source_location: action.source_location)
 
@@ -64,7 +64,7 @@ module Simple::Httpd::ServiceAdapter
 
     # define sinatra route.
     route(verb, path) do
-      result = service.call(action_name, parsed_body, params, context: context)
+      result = ::Simple::Service.invoke(service, action_name, parsed_body, params, context: context)
       encode_result(result)
     end
   end

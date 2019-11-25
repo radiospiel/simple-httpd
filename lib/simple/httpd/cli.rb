@@ -7,7 +7,11 @@ module Simple
 end
 
 module Simple::Httpd::CLI
-  include Simple::CLI
+  include Simple::Service
+
+  def logger
+    ::Simple::CLI.logger
+  end
 
   # Runs a simple httpd server
   #

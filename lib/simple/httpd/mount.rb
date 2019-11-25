@@ -1,5 +1,3 @@
-# rubocop:disable Style/ParallelAssignment
-
 require "simple-service"
 require_relative "./rack"
 
