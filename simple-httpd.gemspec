@@ -26,7 +26,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "sinatra", "~> 2"
   # gem.add_dependency "sinatra-reloader", "~> 1"
   gem.add_dependency "expectation", "~> 1"
-  gem.add_dependency "simple-cli", "~> 0.3.0"
-  gem.add_dependency "simple-service", "~> 0.1.0"
+  gem.add_dependency "simple-cli", "~> 0.3.3"
+  gem.add_dependency "simple-service", "~> 0.1.2"
 end
 #require "expectation"
