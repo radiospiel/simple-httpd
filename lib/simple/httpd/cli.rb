@@ -7,7 +7,7 @@ module Simple
 end
 
 module Simple::Httpd::CLI
-  include Simple::Service
+  include Simple::CLI
 
   def logger
     ::Simple::CLI.logger
@@ -61,13 +61,18 @@ module Simple::Httpd::CLI
   def routes(*mounts, environment: "development", services: nil)
     prepare_environment!(environment: environment)
     app = build_app!(mounts: mounts, services: services)
-    route_descriptions = app.route_descriptions
+    routes = app.route_descriptions
 
-    puts "Found #{route_descriptions.count} routes"
+    logger.info "Found #{routes.count} routes"
 
-    route_descriptions.sort_by(&:path).each do |route|
-      puts route
-    end
+    max_verb_len = routes.map(&:verb).map(&:length).max
+    max_path_len = routes.map(&:path).map(&:length).max
+
+    routes.
+      sort_by { |route| [route.path, route.verb] }.
+      each { |route|
+        puts format("%#{max_verb_len}s %-#{max_path_len}s %s", route.verb, route.path, route.source_location_str)
+      }
   end
 
   private

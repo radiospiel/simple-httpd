@@ -42,8 +42,6 @@ class Simple::Httpd::Route
     SELF.new(verb, File.join(*prefixes, path), source_location)
   end
 
-  private
-
   def source_location_str
     case source_location
     when Array
