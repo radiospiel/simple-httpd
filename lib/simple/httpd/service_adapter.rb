@@ -5,6 +5,13 @@ module Simple::Httpd::ServiceAdapter
     @service = service
 
     instance_eval do
+      def dispatch!
+        ::Simple::Service.with_context(context)
+        super
+      ensure
+        ::Simple::Service.context = nil
+      end
+
       yield(service)
     end
   ensure
@@ -64,8 +71,15 @@ module Simple::Httpd::ServiceAdapter
 
     # define sinatra route.
     route(verb, path) do
-      result = ::Simple::Service.invoke(service, action_name, parsed_body, params, context: context)
-      encode_result(result)
+      ::Simple::Service.with_context(context) do
+        # [TODO] - symbolizing keys opens up this for DDOS effects.
+        # THIS MUST BE FIXED IN simple-service.
+        flags = self.params.inject({}) { |hsh, (k,v)| hsh.update k.to_sym => v }
+        args = self.parsed_body.inject({}) { |hsh, (k,v)| hsh.update k.to_sym => v }
+
+        result = ::Simple::Service.invoke2(service, action_name, args: args, flags: flags)
+        encode_result(result)
+      end
     end
   end
 
@@ -83,7 +97,9 @@ module Simple::Httpd::ServiceAdapter
 
   module Helpers
     def context
-      @context ||= ::Simple::Service::Context.new
+      # We return nil here. nil *is* a valid value for Simple::Service.with_context.
+      # Important is that with_context is being called.
+      nil
     end
   end
 end

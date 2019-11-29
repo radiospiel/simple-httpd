@@ -22,11 +22,6 @@ describe "explicit mounting of service" do
     expect_response 422
   end
 
-  it "ignores missing parameters arguments" do
-    http.post "/example_service/echo/1", { one: "foo", two: "bar" }
-    expect_response "one: [foo]/two: [bar]/a: [1]/b: []"
-  end
-
   it "properly extracts arguments and parameters" do
     http.put "/example_service/echo_context"
     expect_response /Simple::Service::Context/
