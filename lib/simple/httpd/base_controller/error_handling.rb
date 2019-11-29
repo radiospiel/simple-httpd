@@ -7,8 +7,6 @@ class Simple::Httpd::BaseController
   set :dump_errors, false
   set :raise_errors, false
 
-  set :raise_errors, true if ENV["RACK_ENV"] == "test"
-
   private
 
   def stringify_hash(hsh)
@@ -125,19 +123,27 @@ class Simple::Httpd::BaseController
 
   # -- print unspecified errors.
 
-  error do |exc|
-    content_type :text
-    message = <<~MSG
-      === #{exc.class.name} =====================
-      #{exc.message.chomp}
+  if ENV["RACK_ENV"] == "production"
+    error do |exc|
+      content_type :text
+      status 500
+      exc.class.name
+    end
+  else
+    error do |exc|
+      content_type :text
+      message = <<~MSG
+        === #{exc.class.name} =====================
+        #{exc.message.chomp}
 
-      #{H.filtered_stacktrace(exc.backtrace).join("\n")}
-      ==================================================================
-    MSG
+        #{H.filtered_stacktrace(exc.backtrace).join("\n")}
+        ==================================================================
+      MSG
 
-    STDERR.puts message
-    status 500
-    "\n#{message}\n"
+      STDERR.puts message
+      status 500
+      "\n#{message}\n"
+    end
   end
 
   private
