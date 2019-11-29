@@ -72,12 +72,7 @@ module Simple::Httpd::ServiceAdapter
     # define sinatra route.
     route(verb, path) do
       ::Simple::Service.with_context(context) do
-        # [TODO] - symbolizing keys opens up this for DDOS effects.
-        # THIS MUST BE FIXED IN simple-service.
-        flags = self.params.inject({}) { |hsh, (k,v)| hsh.update k.to_sym => v }
-        args = self.parsed_body.inject({}) { |hsh, (k,v)| hsh.update k.to_sym => v }
-
-        result = ::Simple::Service.invoke2(service, action_name, args: args, flags: flags)
+        result = ::Simple::Service.invoke2(service, action_name, args: self.parsed_body, flags: self.params)
         encode_result(result)
       end
     end
