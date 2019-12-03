@@ -4,3 +4,7 @@ task :release do
   sh "scripts/release"
 end
 
+task :default do
+  sh "make"
+end
+

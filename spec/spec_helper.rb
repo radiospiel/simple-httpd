@@ -5,8 +5,8 @@ require "byebug"
 require "rspec"
 require "rspec-httpd"
 
-if ENV["PRELOAD_SERVER_GEM"]
-  require ENV["PRELOAD_SERVER_GEM"]
+ENV["PRELOAD_GEMS"].to_s.split(",").each do |gem_name|
+  require gem_name
 end
 
 # You can comment parts of the command below by prepending the line with a '#'
