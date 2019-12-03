@@ -6,4 +6,4 @@ test:
 .PHONY: fulltest
 fulltest:
 	rspec
-	PRELOAD_SERVER_GEM=puma rspec
+	PRELOAD_GEMS=puma rspec

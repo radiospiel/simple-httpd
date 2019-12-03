@@ -21,7 +21,7 @@ group :development, :test do
   gem 'simplecov', '~> 0'
   gem 'byebug'
 
-  if ENV["PRELOAD_SERVER_GEM"]
-    gem ENV["PRELOAD_SERVER_GEM"]
+  ENV["PRELOAD_GEMS"].to_s.split(",").each do |gem_name|
+    gem gem_name
   end
 end
