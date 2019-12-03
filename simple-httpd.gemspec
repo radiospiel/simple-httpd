@@ -15,9 +15,7 @@ Gem::Specification.new do |gem|
   gem.files         = `git ls-files`.split($/)
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths =  %w(lib)
-
-  # executables are used for development purposes only
-  gem.executables   = []
+  gem.executables   = [ "bin/simple-httpd" ]
 
   gem.required_ruby_version = '~> 2.5'
 
