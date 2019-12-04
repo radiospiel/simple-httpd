@@ -1,8 +1,5 @@
 module Simple
   class Httpd
-    class << self
-      attr_accessor :env
-    end
   end
 end
 
@@ -78,11 +75,11 @@ module Simple::Httpd::CLI
   private
 
   def prepare_environment!(environment:)
-    ::Simple::Httpd.env = environment
     start_simplecov if environment == "test"
 
     # late loading simple/httpd, for simplecov support
     require "simple/httpd"
+    ::Simple::Httpd.env = environment
   end
 
   def build_app!(mounts:, services:)

@@ -7,17 +7,21 @@ class Simple::Httpd
 end
 
 require "simple/service"
-
 require "simple/httpd/helpers"
 require "simple/httpd/base_controller"
 require "simple/httpd/version"
 require "simple/httpd/mount"
 require "simple/httpd/server"
-
 require "simple/httpd/service_adapter"
 
 class Simple::Httpd
   SELF = self
+
+  class << self
+    attr_accessor :env
+  end
+
+  self.env = "development"
 
   # returns a logger for Simple::Httpd.
   #
