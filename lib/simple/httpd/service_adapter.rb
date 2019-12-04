@@ -72,7 +72,7 @@ module Simple::Httpd::ServiceAdapter
     # define sinatra route.
     route(verb, path) do
       ::Simple::Service.with_context(context) do
-        result = ::Simple::Service.invoke2(service, action_name, args: self.parsed_body, flags: self.params)
+        result = ::Simple::Service.invoke(service, action_name, args: self.parsed_body, flags: stringified_params)
         encode_result(result)
       end
     end
@@ -91,6 +91,12 @@ module Simple::Httpd::ServiceAdapter
   end
 
   module Helpers
+    def stringified_params
+      params.each_with_object({}) do |(k,v), hsh|
+        hsh[k.to_s] = v
+      end
+    end
+
     def context
       # We return nil here. nil *is* a valid value for Simple::Service.with_context.
       # Important is that with_context is being called.
