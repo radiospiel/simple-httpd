@@ -55,6 +55,7 @@ module Simple::Httpd::CLI
                                  port: port)
   end
 
+  # rubocop:disable Metrics/AbcSize
   def routes(*mounts, environment: "development", services: nil)
     prepare_environment!(environment: environment)
     app = build_app!(mounts: mounts, services: services)
@@ -65,11 +66,11 @@ module Simple::Httpd::CLI
     max_verb_len = routes.map(&:verb).map(&:length).max
     max_path_len = routes.map(&:path).map(&:length).max
 
-    routes.
-      sort_by { |route| [route.path, route.verb] }.
-      each { |route|
+    routes
+      .sort_by { |route| [route.path, route.verb] }
+      .each do |route|
         puts format("%#{max_verb_len}s %-#{max_path_len}s %s", route.verb, route.path, route.source_location_str)
-      }
+      end
   end
 
   private
