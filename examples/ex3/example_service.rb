@@ -7,8 +7,6 @@ mount_service ExplicitService do |service|
   post "/echo/:a" => :explicit_echo
 
   put "/echo_context" do
-    ::Simple::Service.with_context(context) do
-      ::Simple::Service.invoke(service, :echo_context)
-    end
+    service.invoke :echo_context
   end
 end

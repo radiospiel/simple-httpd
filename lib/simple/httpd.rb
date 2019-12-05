@@ -12,7 +12,7 @@ require "simple/httpd/base_controller"
 require "simple/httpd/version"
 require "simple/httpd/mount"
 require "simple/httpd/server"
-require "simple/httpd/service_adapter"
+require "simple/httpd/service_integration"
 
 class Simple::Httpd
   SELF = self

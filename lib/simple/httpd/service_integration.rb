@@ -1,19 +1,29 @@
 require "simple-service"
 
-module Simple::Httpd::ServiceAdapter
-  def mount_service(service)
-    @service = service
+module Simple::Httpd::ServiceIntegration
+  class Adapter
+    extend Forwardable
 
-    instance_eval do
-      def dispatch!
-        ::Simple::Service.with_context(context)
-        super
-      ensure
-        ::Simple::Service.context = nil
-      end
-
-      yield(service)
+    def initialize(simple_service)
+      @simple_service = simple_service
     end
+
+    def action(action_name)
+      ::Simple::Service.action(@simple_service, action_name)
+    end
+
+    def invoke(name, args: {}, flags: {})
+      ::Simple::Service.invoke @simple_service, name, args: args, flags: flags
+    end
+
+    def invoke3(name, *args, **flags)
+      ::Simple::Service.invoke3 @simple_service, name, *args, **flags
+    end
+  end
+
+  def mount_service(service)
+    @service = Adapter.new(service)
+    yield(@service)
   ensure
     @service = nil
   end
@@ -52,16 +62,18 @@ module Simple::Httpd::ServiceAdapter
   def install_route(verb, path, opts, &block)
     if service_route?(verb, path, opts, &block)
       path, action_name = *path.first
-      handle_service_route(verb, path, action_name)
+      install_service_shortcut(verb, path, action_name)
+    elsif @service
+      install_service_route(verb, path, opts, &block)
     else
-      handle_non_service_route(verb, path, opts, &block)
+      install_non_service_route(verb, path, opts, &block)
     end
   end
 
-  def handle_service_route(verb, path, action_name)
+  def install_service_shortcut(verb, path, action_name)
     # Fetch action's source_location. This also verifies that the action
     # is defined in the first place.
-    action = ::Simple::Service.action(@service, action_name)
+    action = @service.action(action_name)
 
     describe_route!(verb: verb, path: path, source_location: action.source_location)
 
@@ -72,21 +84,31 @@ module Simple::Httpd::ServiceAdapter
     # define sinatra route.
     route(verb, path) do
       ::Simple::Service.with_context(context) do
-        result = ::Simple::Service.invoke(service, action_name, args: parsed_body, flags: stringified_params)
+        result = service.invoke(action_name, args: parsed_body, flags: stringified_params)
         encode_result(result)
       end
     end
   end
 
-  def handle_non_service_route(verb, path, opts, &block)
+  def install_service_route(verb, path, opts, &block)
     describe_route!(verb: verb, path: path, source_location: block.source_location) if block
 
     route(verb, path, opts) do
-      result = instance_eval(&block)
-      unless headers["Content-Type"]
-        result = encode_result(result)
+      ::Simple::Service.with_context(context) do
+        result = instance_eval(&block)
+        unless headers["Content-Type"]
+          result = encode_result(result)
+        end
+        result
       end
-      result
+    end
+  end
+
+  def install_non_service_route(verb, path, opts, &block)
+    describe_route!(verb: verb, path: path, source_location: block.source_location) if block
+
+    route(verb, path, opts) do
+      instance_eval(&block)
     end
   end
 
@@ -105,5 +127,5 @@ module Simple::Httpd::ServiceAdapter
   end
 end
 
-::Simple::Httpd::BaseController.extend(::Simple::Httpd::ServiceAdapter)
-::Simple::Httpd::BaseController.helpers(::Simple::Httpd::ServiceAdapter::Helpers)
+::Simple::Httpd::BaseController.extend(::Simple::Httpd::ServiceIntegration)
+::Simple::Httpd::BaseController.helpers(::Simple::Httpd::ServiceIntegration::Helpers)
