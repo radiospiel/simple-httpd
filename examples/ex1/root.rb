@@ -1,3 +1,11 @@
+# This would be an example of sleeping for 1 sec with thin/eventmachine.
+#
+# aget "/" do
+#   EM.add_timer(1) {
+#     body { "hello sync" }
+#   }
+# end
+
 get "/" do
   "root"
 end
