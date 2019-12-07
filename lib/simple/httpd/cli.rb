@@ -114,12 +114,6 @@ module Simple::Httpd::CLI
     end
   end
 
-  def stderr_logger
-    logger = ::Logger.new STDERR
-    logger.level = ::Logger::INFO
-    logger
-  end
-
   def start_simplecov
     require "simplecov"
 

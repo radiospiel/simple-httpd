@@ -56,6 +56,7 @@ module Simple::Httpd::Helpers
     raise "Missing description" unless description
 
     subclass = Class.new(klass)
+    subclass.define_singleton_method(:description) { description }
     subclass.define_method(:inspect) { description } if description
 
     ::Simple::Httpd::Reloader.attach(subclass, paths: Array(paths))

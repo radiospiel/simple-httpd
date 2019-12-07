@@ -25,12 +25,20 @@ class Simple::Httpd
       #
       # Instead we'll use a combination of Rack::CommonLogger (see Simple::Httpd.app),
       # and sinatra's logger (see Simple::Httpd::BaseController).
-      ::Rack::Server.start app: app,
-                           Host: host,
-                           Port: port,
-                           environment: environment,
-                           Logger: build_logger,
-                           AccessLog: [[NullLogger, ""]]
+      server_opts = {
+        app: app,
+        Host: host,
+        Port: port,
+        environment: environment,
+        Logger: build_logger,
+        AccessLog: [[NullLogger, ""]]
+      }
+
+      unless ::Simple::Httpd.env == "development"
+        server_opts.update workers: 4, min_threads: 4
+      end
+
+      ::Rack::Server.start server_opts
     end
 
     private

@@ -60,6 +60,8 @@ class Simple::Httpd::Rack::DynamicMount
     return [] if path == "." # i.e. mounting current directory
 
     service_path = "#{path}.services"
+    return [] unless Dir.exist?(service_path)
+
     service_files = Dir.glob("#{service_path}/**/*.rb").sort
     logger.info "#{service_path}: loading #{service_files.count} service file(s)"
     service_files
@@ -69,7 +71,7 @@ class Simple::Httpd::Rack::DynamicMount
   def build_root_controller
     H.subclass ::Simple::Httpd::BaseController,
                paths: @helper_paths.sort,
-               description: "root controller at #{path} w/#{@helper_paths.count} helpers"
+               description: "<root controller: #{H.shorten_path path}>"
   end
 
   def build_url_map
@@ -77,7 +79,9 @@ class Simple::Httpd::Rack::DynamicMount
       relative_path = absolute_path[(path.length)..-1]
 
       relative_mount_point = relative_path == "/root.rb" ? "/" : relative_path.gsub(/\.rb$/, "")
-      controller_class = H.subclass @root_controller, description: "controller at #{absolute_path}", paths: absolute_path
+      controller_class = H.subclass @root_controller,
+                                    paths: absolute_path,
+                                    description: "<controller:#{H.shorten_absolute_path(absolute_path)}>"
 
       controller_class.route_descriptions.each do |route|
         route = route.prefix(@mount_point, relative_mount_point)
