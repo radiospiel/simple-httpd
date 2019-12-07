@@ -16,6 +16,10 @@ module Simple::Httpd::Helpers
   def shorten_path(path)
     path = File.absolute_path(path)
 
+    shorten_absolute_path(path)
+  end
+
+  def shorten_absolute_path(path)
     if path.start_with?(pwd)
       path = path[pwd.length..-1]
       path = File.join("./", path) if path =~ /\//
@@ -53,7 +57,9 @@ module Simple::Httpd::Helpers
 
     subclass = Class.new(klass)
     subclass.define_method(:inspect) { description } if description
-    instance_eval_paths subclass, paths: paths if paths
+
+    ::Simple::Httpd::Reloader.attach(subclass, paths: Array(paths))
+
     subclass
   end
 

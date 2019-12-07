@@ -6,14 +6,12 @@ require "sinatra/base"
 class Simple::Httpd::BaseController < Sinatra::Base
   set :logging, true
 
-  # --- Sinatra::Reloader -----------------------------------------------------
+  extend Simple::Httpd::Reloader
 
-  # Note that Sinatra::Reloader is less thorough than, say, shotgun or the
-  # Rails development mode, but on the other hand it is much faster, and
-  # probably useful 90% of the time.
-  configure :development do
-    # require "sinatra/reloader"
-    # register Sinatra::Reloader
+  def dispatch!
+    self.class.reload! if ::Simple::Httpd.env == "development"
+
+    super
   end
 end
 

@@ -9,11 +9,15 @@ class Simple::Httpd::Rack::DynamicMount
 
   extend Forwardable
 
-  delegate :call => :@rack_app # rubocop:disable Style/HashSyntax
-
   def self.build(mount_point, path)
     expect! path => String
     new(mount_point, path)
+  end
+
+  def call(env)
+    reload! if ::Simple::Httpd.env == "development"
+
+    @rack_app.call(env)
   end
 
   attr_reader :path
@@ -24,7 +28,8 @@ class Simple::Httpd::Rack::DynamicMount
     @path = path.gsub(/\/\z/, "") # remove trailing "/"
 
     setup_paths!
-    load_service_files!
+    ::Simple::Httpd::Reloader.attach self, paths: service_files, reloading_instance: nil
+
     @root_controller = build_root_controller # also loads helpers
     @url_map = build_url_map
 
@@ -47,18 +52,17 @@ class Simple::Httpd::Rack::DynamicMount
     logger.info "#{path}: found #{@source_paths.count} sources, #{@helper_paths.count} helpers"
   end
 
-  def load_service_files!
-    return if path == "." # i.e. mounting current directory
+  def service_files
+    @service_files ||= _service_files
+  end
+
+  def _service_files
+    return [] if path == "." # i.e. mounting current directory
 
     service_path = "#{path}.services"
-    service_files = Dir.glob("#{service_path}/**/*.rb")
-    return if service_files.empty?
-
+    service_files = Dir.glob("#{service_path}/**/*.rb").sort
     logger.info "#{service_path}: loading #{service_files.count} service file(s)"
-    service_files.sort.each do |path|
-      logger.debug "Loading service file #{path.inspect}"
-      load path
-    end
+    service_files
   end
 
   # wraps all helpers into a Simple::Httpd::BaseController subclass

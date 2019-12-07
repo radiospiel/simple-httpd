@@ -8,6 +8,7 @@ end
 
 require "simple/service"
 require "simple/httpd/helpers"
+require "simple/httpd/reloader"
 require "simple/httpd/base_controller"
 require "simple/httpd/version"
 require "simple/httpd/mount"
