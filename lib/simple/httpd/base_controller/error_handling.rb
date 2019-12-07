@@ -1,6 +1,18 @@
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable Metrics/ClassLength, Lint/Void
 
 require_relative "./json"
+
+# reimplement Sinatra's NotFound handler.
+#
+# The original renders HTML; this is not really useful for us.
+Sinatra::Base
+class Sinatra::Base
+  error ::Sinatra::NotFound do
+    content_type "text/plain"
+
+    "Don't know how to handle: #{request.request_method} '#{request.path_info}'"
+  end
+end
 
 class Simple::Httpd::BaseController
   H = ::Simple::Httpd::Helpers
