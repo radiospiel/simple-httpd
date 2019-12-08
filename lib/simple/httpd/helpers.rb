@@ -1,4 +1,16 @@
 module Simple::Httpd::Helpers
+  module SinatraRequestHeaders
+    def headers
+      env.each_with_object({}) do |(key, value), hsh|
+        next unless key =~ /\AHTTP_(.*)/
+
+        key = $1.split("_").collect(&:capitalize).join("-")
+        hsh[key] = value
+      end
+    end
+  end
+  ::Sinatra::Request.include(SinatraRequestHeaders)
+
   extend self
 
   private
