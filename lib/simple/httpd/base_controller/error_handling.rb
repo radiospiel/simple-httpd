@@ -47,8 +47,23 @@ class Simple::Httpd::BaseController
     options["description"] ||= options["title"]
     options["@type"] = error_type(exc)
     options["@now"] = Time.now.to_f
+    options["@request"] = "#{request.request_method} #{request.path}"
+
+    if Simple::Httpd.env == "development" || Simple::Httpd.env == "test"
+      options["@headers"] = request_headers_for_debugging
+      options["@backtrace"] = exc.backtrace[0, 10]
+    end
 
     json options
+  end
+
+  def request_headers_for_debugging
+    request.headers.each_with_object({}) do |(key, value), hsh|
+      next if /^(Host|Version|Connection|User-Agent|Accept-Encoding)$/ =~ key
+      next if key == "Accept" && value == "*/*"
+
+      hsh[key] = value
+    end
   end
 
   if defined?(Expectation)
