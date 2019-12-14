@@ -2,6 +2,7 @@
 # config/routes.rb, **after** this file is loaded. See the end of this file.
 
 require "sinatra/base"
+::Sinatra::Request.include(::Simple::Httpd::Helpers::RequestHeader)
 
 class Simple::Httpd::BaseController < Sinatra::Base
   set :logging, true

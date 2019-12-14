@@ -18,18 +18,20 @@ class Simple::Httpd
 
       ::Simple::Httpd.logger.info "Starting httpd server on http://#{host}:#{port}/"
 
+      app = ::Rack::CommonLogger.new(app)
       app = ::Rack::Lint.new(app) if environment != "production"
 
       # re/AccessLog: the AccessLog setting points WEBrick's access logging to the
       # NullLogger object.
       #
-      # Instead we'll use a combination of Rack::CommonLogger (see Simple::Httpd.app),
-      # and sinatra's logger (see Simple::Httpd::BaseController).
+      # We do not set the environment. Rack is using this to load different
+      # default middlewares (ShowException, Lint, CommonLogger) depending on
+      # the environment setting (which should be either "development" or
+      # "deployment").
       server_opts = {
         app: app,
         Host: host,
         Port: port,
-        environment: environment,
         Logger: build_logger,
         AccessLog: [[NullLogger, ""]]
       }
