@@ -1,4 +1,5 @@
 # rubocop:disable Metrics/ClassLength, Lint/Void
+# rubocop:disable Metrics/AbcSize
 
 require_relative "./json"
 
@@ -86,8 +87,6 @@ class Simple::Httpd::BaseController
   # end
 
   error(ArgumentError) do |exc|
-    STDERR.puts "Caught ArgumentError: #{exc}, from\n\t#{exc.backtrace[0, 5].join("\n\t")}"
-
     render_error exc, status: 422,
                       title: "Invalid input #{exc.inspect}",
                       description: error_description(exc)
@@ -104,14 +103,14 @@ class Simple::Httpd::BaseController
   class NotAuthorizedError < RuntimeError
   end
 
+  def not_authorized!(msg)
+    raise NotAuthorizedError, msg
+  end
+
   error(NotAuthorizedError) do
     render_error e, status: 403,
                     title: "Not authorized",
                     description: "You don't have necessary powers to access this page."
-  end
-
-  def not_authorized!(msg)
-    raise NotAuthorizedError, msg
   end
 
   # -- login required.---------------------------------------------------------
@@ -152,7 +151,7 @@ class Simple::Httpd::BaseController
 
   # -- print unspecified errors.
 
-  if ENV["RACK_ENV"] == "production"
+  if ::Simple::Httpd.env == "development"
     error do |exc|
       content_type :text
       status 500

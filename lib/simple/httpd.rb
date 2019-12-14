@@ -4,18 +4,6 @@ module Simple
 end
 
 class Simple::Httpd
-end
-
-require "simple/service"
-require "simple/httpd/helpers"
-require "simple/httpd/reloader"
-require "simple/httpd/base_controller"
-require "simple/httpd/version"
-require "simple/httpd/mount"
-require "simple/httpd/server"
-require "simple/httpd/service_integration"
-
-class Simple::Httpd
   SELF = self
 
   class << self
@@ -40,7 +28,18 @@ class Simple::Httpd
   def self.logger=(logger)
     @logger = logger
   end
+end
 
+require "simple/service"
+require "simple/httpd/helpers"
+require "simple/httpd/reloader"
+require "simple/httpd/base_controller"
+require "simple/httpd/version"
+require "simple/httpd/mount"
+require "simple/httpd/server"
+require "simple/httpd/service_integration"
+
+class Simple::Httpd
   # Converts the passed in args into a Simple::Httpd application.
   #
   # The passed in arguments are used to create a Simple::Httpd object.

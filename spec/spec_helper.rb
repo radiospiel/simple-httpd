@@ -33,7 +33,9 @@ end
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 
 require "simple/httpd"
-
+#Simple::Httpd.env = "test"
+if ::Simple::Httpd.env == "development"
+end
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run focus: (ENV["CI"] != "true")
