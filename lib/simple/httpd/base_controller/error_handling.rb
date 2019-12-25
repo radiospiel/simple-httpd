@@ -151,7 +151,7 @@ class Simple::Httpd::BaseController
 
   # -- print unspecified errors.
 
-  if ::Simple::Httpd.env == "development"
+  if ::Simple::Httpd.env != "development"
     error do |exc|
       content_type :text
       status 500
