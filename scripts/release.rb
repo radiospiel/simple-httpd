@@ -57,6 +57,10 @@ end
 # -- check, bump, release a new gem version -----------------------------------
 
 Dir.chdir ROOT
+
+gem_files = Dir.glob('*.gem')
+raise "Found one or more *.gem files: #{gem_files}" unless gem_files.empty?
+
 $BASE_BRANCH = ENV['BRANCH'] || 'master'
 
 # ENV["BUNDLE_GEMFILE"] = "#{Dir.getwd}/Gemfile"
@@ -76,10 +80,12 @@ sys! "git commit -m \"bump gem to v#{version}\""
 sys! "git tag -a v#{version} -m \"Tag #{version}\""
 
 sys! "gem build #{GEMSPEC}"
+gem_file = Dir.glob('*.gem').first
+sys! "gem install #{gem_file}"
 
 sys! "git push origin #{$BASE_BRANCH}"
 sys! 'git push --tags --force'
-sys! "gem push #{Dir.glob('*.gem').first}"
+sys! "gem push #{gem_file}"
 
 sys! "mkdir -p pkg"
 sys! "mv *.gem pkg"
