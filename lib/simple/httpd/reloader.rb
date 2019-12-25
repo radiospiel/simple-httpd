@@ -50,12 +50,22 @@ module Simple::Httpd::Reloader
       "#{verb} #{H.shorten_path path}"
     end
 
-    if @__reloading_instance__
-      @__reloading_instance__.instance_eval File.read(path), path, 1
-    else
-      load path
+    silence_warnings do
+      if @__reloading_instance__
+        @__reloading_instance__.instance_eval File.read(path), path, 1
+      else
+        load path
+      end
     end
 
     @__source_mtimes_by_path__[path] = mtime
+  end
+
+  def silence_warnings(&block)
+    warn_level = $VERBOSE
+    $VERBOSE = nil
+    yield
+  ensure
+    $VERBOSE = warn_level
   end
 end
