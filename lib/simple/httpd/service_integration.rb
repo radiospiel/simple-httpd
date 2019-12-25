@@ -1,3 +1,5 @@
+# rubocop:disable Lint/RescueException
+
 require "simple-service"
 
 module Simple::Httpd::ServiceIntegration
@@ -86,8 +88,11 @@ module Simple::Httpd::ServiceIntegration
       ::Simple::Service.with_context(context) do
         result = service.invoke(action_name, args: parsed_body, flags: stringified_params)
         encode_result(result)
+      rescue Errno::ENOENT => e
+        Simple::Httpd.logger.warn "#{e}"
+        raise
       rescue Exception => e
-        Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0,10].join("\n    ")}"
+        Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0, 10].join("\n    ")}"
         raise
       end
     end
@@ -103,8 +108,11 @@ module Simple::Httpd::ServiceIntegration
           result = encode_result(result)
         end
         result
+      rescue Errno::ENOENT => e
+        Simple::Httpd.logger.warn "#{e}"
+        raise
       rescue Exception => e
-        Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0,10].join("\n    ")}"
+        Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0, 10].join("\n    ")}"
         raise
       end
     end
