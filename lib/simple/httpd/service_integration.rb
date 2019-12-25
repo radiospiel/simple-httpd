@@ -86,6 +86,9 @@ module Simple::Httpd::ServiceIntegration
       ::Simple::Service.with_context(context) do
         result = service.invoke(action_name, args: parsed_body, flags: stringified_params)
         encode_result(result)
+      rescue Exception => e
+        Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0,10].join("\n    ")}"
+        raise
       end
     end
   end
@@ -100,6 +103,9 @@ module Simple::Httpd::ServiceIntegration
           result = encode_result(result)
         end
         result
+      rescue Exception => e
+        Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0,10].join("\n    ")}"
+        raise
       end
     end
   end
