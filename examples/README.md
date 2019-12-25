@@ -18,14 +18,14 @@ The following explanations assume you started a server with the configuration me
 
 This directory currently contains these files:
 
-    - ex1/root.rb
+    - ex1/routes.rb
     - ex1/ex1_helpers.rb
     - ex2/helpers.rb
-    - ex2/root.rb
+    - ex2/routes.rb
     - ex2/info.rb
     - ex2/ex2_helpers.rb
     - ex2/README.txt
-    - v2/root.rb
+    - v2/routes.rb
     - v2/jobs.rb
     - v2/v2_helpers.rb
     - v2/api.js
@@ -34,8 +34,8 @@ This directory currently contains these files:
 
 The following lists some routes and where they are implemented:
 
-  GET "/"                         .. in ex1/root.rb
-  GET "/debug"                    .. in ex2/root.rb
+  GET "/"                         .. in ex1/routes.rb
+  GET "/debug"                    .. in ex2/routes.rb
   GET "/info/inspect"             .. in ex2/info.rb
-  GET "/api/v2/"                  .. in v2/root.rb
+  GET "/api/v2/"                  .. in v2/routes.rb
   GET "/api/v2/jobs/:id/events"   .. in v2/jobs.rb

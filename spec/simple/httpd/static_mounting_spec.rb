@@ -7,7 +7,7 @@ describe "static mounting" do
   end
 
   it "does not return a forbidden static file" do
-    http.get "/root.rb"
+    http.get "/routes.rb"
     expect_response 404
   end
 end

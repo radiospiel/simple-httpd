@@ -62,6 +62,8 @@ module Simple::Httpd::Reloader
   end
 
   def silence_warnings(&block)
+    _ = block
+
     warn_level = $VERBOSE
     $VERBOSE = nil
     yield

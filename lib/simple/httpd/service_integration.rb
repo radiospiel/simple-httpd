@@ -1,4 +1,5 @@
 # rubocop:disable Lint/RescueException
+# rubocop:disable Metrics/AbcSize
 
 require "simple-service"
 
@@ -89,7 +90,7 @@ module Simple::Httpd::ServiceIntegration
         result = service.invoke(action_name, args: parsed_body, flags: stringified_params)
         encode_result(result)
       rescue Errno::ENOENT => e
-        Simple::Httpd.logger.warn "#{e}"
+        Simple::Httpd.logger.warn e.to_s
         raise
       rescue Exception => e
         Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0, 10].join("\n    ")}"
@@ -109,7 +110,7 @@ module Simple::Httpd::ServiceIntegration
         end
         result
       rescue Errno::ENOENT => e
-        Simple::Httpd.logger.warn "#{e}"
+        Simple::Httpd.logger.warn e.to_s
         raise
       rescue Exception => e
         Simple::Httpd.logger.warn "#{e}, from\n    #{e.backtrace[0, 10].join("\n    ")}"

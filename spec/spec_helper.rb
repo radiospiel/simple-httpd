@@ -16,7 +16,7 @@ HTTPD_COMMAND = <<~CMD
   --environment=test
   examples/ex1
   examples/ex2
-  examples/ex3
+  examples/ex3:example_service
   examples/v2:api/v2
   --services=examples/services
 #  2> log/test.log

@@ -8,7 +8,7 @@ describe Simple::Httpd do
   end
 
   describe "root routing" do
-    it "resolves routes from root.rb" do
+    it "resolves routes from routes.rb" do
       http.get "/"
       expect_response "root"
     end

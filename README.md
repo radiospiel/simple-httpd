@@ -30,13 +30,9 @@ They become available at the location specified by their filename and extension.
 
 ### Dynamic assets
 
-Each mounted directory which contains ruby source files is converted into a sinatra application, which consists of a root configuration and controllers for each action file.
+Each mounted directory might contain a "routes.rb" ruby source file which is loaded in the context of a Sinatra controller to set up routes. Example:
 
-Ruby files ending in `_helpers.rb`, e.g. `examples/ex1/ex1_helpers.rb` are executed in the context of a directory tree's root controller and provide functionality available in all action files. Typically they do not implement HTTP handlers themselves.
-
-All other ruby files implement HTTP handlers in typical sinatra fashion:
-
-    # in v2/jobs.rb
+    # in v2/routes.rb
     get "/queue/:id/events" do
       events = [
         { job_id: params[:id], id: "event1" },
@@ -46,16 +42,10 @@ All other ruby files implement HTTP handlers in typical sinatra fashion:
       json events
     end
 
-If this snippet is contained in a file `v2/jobs.rb` and the `v2` directory is mounted into `api/v2`, the snipped implements the handler for, for example, `GET /api/v2/jobs/queue/123/events`. In other words, the handler implement in the source file works on paths relative to a path combining the mount location and the file name.
+Ruby files below `./helpers` in the dynamically loaded directory is loaded as a helper file when setting up a dynamic mount, e.g. `examples/ex1/helpers/ex1_helpers.rb` are executed in the context of a directory tree's root controller and provide functionality
+available in the `routes.rb` file.
 
-To implement a action on the mountpoint itself one uses the `root.rb` file. The following
-
-    # in v2/root.rb
-    get "/" do
-      json version: "123"
-    end
-
-would implement `GET /api/v2`.
+[TODO] describe service usage.
 
 ## Command line usage
 
@@ -77,8 +67,7 @@ The arguments `ex1` and `ex2` serve at the `/` location. This notation really is
     port = 12345
 
     app = ::Simple::Httpd.build("/" => httpd_root_dir)
-    ::Simple::Httpd.listen! app, port: port,
-                                 logger: ::Logger.new(STDERR)
+    ::Simple::Httpd.listen! app, port: port, logger: ::Logger.new(STDERR)
 
 
 ## The example application

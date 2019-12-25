@@ -5,7 +5,6 @@ require "expectation"
 # existing static files.
 class Simple::Httpd::Rack::DynamicMount
   H = ::Simple::Httpd::Helpers
-  Rack = ::Simple::Httpd::Rack
 
   extend Forwardable
 
@@ -27,13 +26,15 @@ class Simple::Httpd::Rack::DynamicMount
     @mount_point = mount_point
     @path = path.gsub(/\/\z/, "") # remove trailing "/"
 
-    setup_paths!
     ::Simple::Httpd::Reloader.attach self, paths: service_files, reloading_instance: nil
 
-    @root_controller = build_root_controller # also loads helpers
-    @url_map = build_url_map
+    @rack_app = H.subclass ::Simple::Httpd::BaseController,
+                           paths: helper_files + ["#{path}/routes.rb"],
+                           description: "<controller:#{H.shorten_path(path)}>"
 
-    @rack_app = ::Rack::URLMap.new(@url_map)
+    @rack_app.route_descriptions.each do |route|
+      describe_route! route.prefix(@mount_point)
+    end
   end
 
   # RouteDescriptions are being built during build_url_map
@@ -41,54 +42,15 @@ class Simple::Httpd::Rack::DynamicMount
 
   private
 
-  def logger
-    ::Simple::Httpd.logger
-  end
-
-  def setup_paths!
-    @source_paths = Dir.glob("#{path}/**/*.rb")
-    @helper_paths, @controller_paths = @source_paths.partition { |str| /_helper(s?)\.rb$/ =~ str }
-
-    logger.info "#{path}: found #{@source_paths.count} sources, #{@helper_paths.count} helpers"
-  end
-
   def service_files
-    @service_files ||= _service_files
-  end
-
-  def _service_files
-    return [] if path == "." # i.e. mounting current directory
-
-    service_path = "#{path}.services"
-    return [] unless Dir.exist?(service_path)
-
-    service_files = Dir.glob("#{service_path}/**/*.rb").sort
-    logger.info "#{service_path}: loading #{service_files.count} service file(s)"
+    service_files = Dir.glob("#{path}/services/**/*.rb").sort
+    ::Simple::Httpd.logger.info "#{path}: loading #{service_files.count} service file(s)" if service_files.count > 0
     service_files
   end
 
-  # wraps all helpers into a Simple::Httpd::BaseController subclass
-  def build_root_controller
-    H.subclass ::Simple::Httpd::BaseController,
-               paths: @helper_paths.sort,
-               description: "<root controller: #{H.shorten_path path}>"
-  end
-
-  def build_url_map
-    @controller_paths.sort.each_with_object({}) do |absolute_path, hsh|
-      relative_path = absolute_path[(path.length)..-1]
-
-      relative_mount_point = relative_path == "/root.rb" ? "/" : relative_path.gsub(/\.rb$/, "")
-      controller_class = H.subclass @root_controller,
-                                    paths: absolute_path,
-                                    description: "<controller:#{H.shorten_absolute_path(absolute_path)}>"
-
-      controller_class.route_descriptions.each do |route|
-        route = route.prefix(@mount_point, relative_mount_point)
-        describe_route! route
-      end
-
-      hsh.update relative_mount_point => controller_class
-    end
+  def helper_files
+    helper_files = Dir.glob("#{path}/helpers/**/*.rb").sort
+    ::Simple::Httpd.logger.info "#{path}: loading #{helper_files.count} helper file(s)" if helper_files.count > 0
+    helper_files
   end
 end
