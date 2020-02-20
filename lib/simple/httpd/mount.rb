@@ -58,10 +58,12 @@ module Simple::Httpd::Mount
     end
 
     def build_rack_apps
+      return @build_rack_apps if @build_rack_apps
+
       dynamic_mount = Rack::DynamicMount.build(mount_point, path)
       static_mount = Rack::StaticMount.build(mount_point, path)
 
-      [dynamic_mount, static_mount].compact
+      @build_rack_apps = [dynamic_mount, static_mount].compact
     end
   end
 end
