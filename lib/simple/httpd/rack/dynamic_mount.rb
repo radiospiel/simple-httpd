@@ -8,9 +8,15 @@ class Simple::Httpd::Rack::DynamicMount
 
   extend Forwardable
 
+  # Tries to build a DynamicMount mount point at a gievn path. This is only
+  # successful if the path location has a "routes.rb" file.
   def self.build(mount_point, path)
     expect! path => String
-    new(mount_point, path)
+
+    routes = File.join(path, "routes.rb")
+    return unless File.exist?(routes)
+
+    new(mount_point, path, routes)
   end
 
   def call(env)
@@ -22,14 +28,14 @@ class Simple::Httpd::Rack::DynamicMount
   attr_reader :path
   attr_reader :mount_point
 
-  def initialize(mount_point, path)
+  def initialize(mount_point, path, routes)
     @mount_point = mount_point
     @path = path.gsub(/\/\z/, "") # remove trailing "/"
 
     ::Simple::Httpd::Reloader.attach self, paths: service_files, reloading_instance: nil
 
     @rack_app = H.subclass ::Simple::Httpd::BaseController,
-                           paths: helper_files + ["#{path}/routes.rb"],
+                           paths: helper_files + [routes],
                            description: "<controller:#{H.shorten_path(path)}>"
 
     @rack_app.route_descriptions.each do |route|
