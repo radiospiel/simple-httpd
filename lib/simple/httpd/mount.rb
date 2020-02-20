@@ -38,7 +38,8 @@ module Simple::Httpd::Mount
     attr_reader :path, :mount_point
 
     def self.build(mount_point, path:)
-      path = path.gsub(/\/$/, "") # remove trailing "/"
+      mount_point = mount_point.gsub(/\/.$/, "/") # shorting trailing "/." to "/"
+      path        = path.gsub(/\/$/, "")          # remove trailing "/"
 
       raise ArgumentError, "You probably don't want to mount your root directory, check mount" if path == ""
       return unless Dir.exist?(path)
