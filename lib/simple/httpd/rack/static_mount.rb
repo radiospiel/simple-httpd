@@ -3,7 +3,7 @@ class Simple::Httpd::Rack::StaticMount
   H = ::Simple::Httpd::Helpers
   Rack = ::Simple::Httpd::Rack
 
-  EXTENSIONS = %w(.txt .md .js .css .png .jpeg .jpg)
+  EXTENSIONS = %w(.txt .md .js .css .png .jpeg .jpg .html)
   GLOB_PATTERN = "**/*.{#{EXTENSIONS.map { |s| s[1..-1] }.join(",")}}"
 
   def self.build(mount_point, path)
@@ -13,6 +13,12 @@ class Simple::Httpd::Rack::StaticMount
 
     ::Simple::Httpd.logger.info do
       "#{mount_point}: serving #{static_files.count} static file(s)"
+    end
+
+    if ::Simple::Httpd.logger.debug?
+      static_files.sort.each do |file|
+        ::Simple::Httpd.logger.debug "#{mount_point}/#{file}"
+      end
     end
 
     new(mount_point, path, static_files)
@@ -38,9 +44,8 @@ class Simple::Httpd::Rack::StaticMount
   public
 
   def call(env)
-    request_path = env["PATH_INFO"]
-    if serve_file?(request_path)
-      file_path = request_path[1..-1]
+    file_path = lookup_static_file(env["PATH_INFO"])
+    if file_path
       env["PATH_INFO"] = file_path
       @file_server.call(env)
     else
@@ -50,7 +55,19 @@ class Simple::Httpd::Rack::StaticMount
 
   private
 
-  def serve_file?(request_path)
-    @static_files.include?(request_path[1..-1])
+  def lookup_static_file(path_info)
+    relative_path = path_info[1..-1]
+    return relative_path if @static_files.include?(relative_path)
+
+    # determine potential index paths
+    index_paths = %w(index.html README.md)
+
+    if relative_path != ""
+      index_paths = index_paths.map do |index_file|
+        File.join(relative_path, index_file)
+      end
+    end
+
+    (index_paths & @static_files.to_a).first
   end
 end
